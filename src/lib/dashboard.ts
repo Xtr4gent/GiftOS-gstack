@@ -23,7 +23,7 @@ export async function getDashboardData(userId: string) {
   const lastGift = await db.query.gifts.findFirst({
     where: (gift, { and, eq, isNotNull }) =>
       and(eq(gift.userId, userId), eq(gift.isArchived, false), isNotNull(gift.givenAt)),
-    orderBy: [desc(gifts.givenAt)],
+    orderBy: [desc(gifts.givenAt), desc(gifts.createdAt)],
   });
 
   const yearStart = new Date(new Date().getFullYear(), 0, 1);
