@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { createReadStream } from "node:fs";
-import { mkdir, writeFile } from "node:fs/promises";
+import { access, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
 
@@ -86,6 +86,7 @@ export async function readGiftImage(key: string) {
     }
 
     const filePath = path.join(localUploadDir, key);
+    await access(filePath);
     return {
       stream: Readable.toWeb(createReadStream(filePath)) as ReadableStream,
       mimeType: "application/octet-stream",
