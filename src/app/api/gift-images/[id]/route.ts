@@ -31,6 +31,10 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   }
 
   const asset = await readGiftImage(image.bucketKey);
+  if (!asset?.stream) {
+    return new NextResponse("Not found", { status: 404 });
+  }
+
   return new NextResponse(asset.stream as BodyInit, {
     headers: {
       "Content-Type": image.mimeType,

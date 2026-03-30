@@ -15,6 +15,15 @@ type UploadResult = {
 
 const localUploadDir = path.join(process.cwd(), ".local-uploads");
 
+function isMissingObjectError(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const candidate = error as NodeJS.ErrnoException & { name?: string };
+  return candidate.code === "ENOENT" || candidate.name === "NoSuchKey";
+}
+
 function getS3Client() {
   if (!process.env.S3_ENDPOINT || !process.env.S3_BUCKET) {
     return null;
@@ -62,22 +71,30 @@ export async function uploadGiftImage(file: File): Promise<UploadResult> {
 export async function readGiftImage(key: string) {
   const client = getS3Client();
 
-  if (client && process.env.S3_BUCKET) {
-    const object = await client.send(
-      new GetObjectCommand({
-        Bucket: process.env.S3_BUCKET,
-        Key: key,
-      }),
-    );
-    return {
-      stream: object.Body?.transformToWebStream(),
-      mimeType: object.ContentType || "application/octet-stream",
-    };
-  }
+  try {
+    if (client && process.env.S3_BUCKET) {
+      const object = await client.send(
+        new GetObjectCommand({
+          Bucket: process.env.S3_BUCKET,
+          Key: key,
+        }),
+      );
+      return {
+        stream: object.Body?.transformToWebStream(),
+        mimeType: object.ContentType || "application/octet-stream",
+      };
+    }
 
-  const filePath = path.join(localUploadDir, key);
-  return {
-    stream: Readable.toWeb(createReadStream(filePath)) as ReadableStream,
-    mimeType: "application/octet-stream",
-  };
+    const filePath = path.join(localUploadDir, key);
+    return {
+      stream: Readable.toWeb(createReadStream(filePath)) as ReadableStream,
+      mimeType: "application/octet-stream",
+    };
+  } catch (error) {
+    if (isMissingObjectError(error)) {
+      return null;
+    }
+
+    throw error;
+  }
 }
