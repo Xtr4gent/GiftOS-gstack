@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1.1 - 2026-03-30
+
+- add `DESIGN.md` as the locked design-system source of truth for GiftOS
+- define the Boutique Editorial visual direction, including typography, palette, spacing, and motion guidance
+- update `CLAUDE.md` so future UI work and QA checks explicitly follow the approved design system
+
 ## 0.1.1.0 - 2026-03-30
 
 - fix dashboard and history ordering so the newest same-day gift is shown consistently as the latest gift
