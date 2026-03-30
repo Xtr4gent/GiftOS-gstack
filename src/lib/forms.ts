@@ -84,3 +84,18 @@ export function parseSettingsFormData(formData: FormData) {
     wishCategories: parseList("wishCategories"),
   };
 }
+
+export function parseOccasionItemFormData(formData: FormData) {
+  return {
+    sectionKey: formData.get("sectionKey")?.toString().trim() || "main",
+    giftId: nullableText(formData.get("giftId")),
+    draftName: nullableText(formData.get("draftName")),
+    draftNotes: nullableText(formData.get("draftNotes")),
+    draftProductUrl: nullableText(formData.get("draftProductUrl")),
+    draftTargetAmount: (() => {
+      const amount = formData.get("draftTargetAmount")?.toString();
+      if (!amount?.trim()) return null;
+      return parseMoneyToMinorUnits(amount);
+    })(),
+  };
+}

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.2.0 - 2026-03-30
+
+### Added
+
+- add first-class occasion planning with yearly planner records and planner item rows for Birthday, Anniversary, Christmas, and Valentine's Day
+- add reusable occasion planner pages and APIs, including draft ideas that can later be promoted into real gifts
+- add typed occasion configuration and anniversary guidance helpers, plus regression coverage for the new config logic
+
+### Changed
+
+- reuse the shared gift creation pipeline for planner promotion so planner-created gifts follow the same rules as normal gifts
+- update the app shell and planner styling to follow the locked Boutique Editorial design system more closely
+
 ## 0.1.1.1 - 2026-03-30
 
 - add `DESIGN.md` as the locked design-system source of truth for GiftOS

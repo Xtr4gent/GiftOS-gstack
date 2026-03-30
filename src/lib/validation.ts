@@ -54,3 +54,35 @@ export const settingsInputSchema = z.object({
   doNotBuyItems: z.array(z.string().trim().min(1)).default([]),
   wishCategories: z.array(z.string().trim().min(1)).default([]),
 });
+
+export const occasionItemCreateSchema = z
+  .object({
+    sectionKey: z.string().trim().min(1).max(64),
+    giftId: z.string().uuid().optional().nullable(),
+    draftName: z.string().trim().min(1).max(255).optional().nullable(),
+    draftNotes: z.string().trim().max(5000).optional().nullable(),
+    draftProductUrl: z.string().trim().url().optional().or(z.literal("")).nullable(),
+    draftTargetAmount: z.number().int().min(0).optional().nullable(),
+  })
+  .superRefine((value, ctx) => {
+    const hasGiftId = Boolean(value.giftId);
+    const hasDraftName = Boolean(value.draftName);
+
+    if (hasGiftId === hasDraftName) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Add either an existing gift or a draft idea.",
+        path: ["giftId"],
+      });
+    }
+  });
+
+export const occasionItemUpdateSchema = z
+  .object({
+    sectionKey: z.string().trim().min(1).max(64),
+    draftName: z.string().trim().min(1).max(255).optional().nullable(),
+    draftNotes: z.string().trim().max(5000).optional().nullable(),
+    draftProductUrl: z.string().trim().url().optional().or(z.literal("")).nullable(),
+    draftTargetAmount: z.number().int().min(0).optional().nullable(),
+  })
+  .strict();

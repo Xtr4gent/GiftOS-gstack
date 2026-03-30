@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 
 import { db } from "@/db/client";
-import { giftImages, gifts, giftTags } from "@/db/schema";
+import { giftImages } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { uploadGiftImage } from "@/lib/bucket";
 import { parseGiftFormData } from "@/lib/forms";
-import { listGifts } from "@/lib/gifts";
+import { createGiftRecord, listGifts } from "@/lib/gifts";
 import { giftInputSchema } from "@/lib/validation";
 
 export async function GET() {
@@ -46,21 +46,14 @@ export async function POST(request: Request) {
   }
 
   const gift = await db.transaction(async (tx) => {
-    const [createdGift] = await tx
-      .insert(gifts)
-      .values({
-        userId: session.user.id,
-        ...parsed.data,
-        purchasedAt: parsed.data.purchasedAt ? new Date(parsed.data.purchasedAt) : null,
-        receivedAt: parsed.data.receivedAt ? new Date(parsed.data.receivedAt) : null,
-        wrappedAt: parsed.data.wrappedAt ? new Date(parsed.data.wrappedAt) : null,
-        givenAt: parsed.data.givenAt ? new Date(parsed.data.givenAt) : null,
-      })
-      .returning();
-
-    if (parsed.data.tags.length) {
-      await tx.insert(giftTags).values(parsed.data.tags.map((tag) => ({ giftId: createdGift.id, tag })));
-    }
+    const createdGift = await createGiftRecord(tx, {
+      userId: session.user.id,
+      ...parsed.data,
+      purchasedAt: parsed.data.purchasedAt ? new Date(parsed.data.purchasedAt) : null,
+      receivedAt: parsed.data.receivedAt ? new Date(parsed.data.receivedAt) : null,
+      wrappedAt: parsed.data.wrappedAt ? new Date(parsed.data.wrappedAt) : null,
+      givenAt: parsed.data.givenAt ? new Date(parsed.data.givenAt) : null,
+    });
 
     if (uploadedImage) {
       await tx.insert(giftImages).values({
