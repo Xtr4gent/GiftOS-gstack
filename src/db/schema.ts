@@ -6,6 +6,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
@@ -90,6 +91,37 @@ export const giftTags = pgTable(
   },
   (table) => [primaryKey({ columns: [table.giftId, table.tag] })],
 );
+
+export const occasionYears = pgTable(
+  "occasion_years",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    occasionType: occasionTypeEnum("occasion_type").notNull(),
+    year: integer("year").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("occasion_years_user_type_year_idx").on(table.userId, table.occasionType, table.year)],
+);
+
+export const occasionGifts = pgTable("occasion_gifts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  occasionYearId: uuid("occasion_year_id")
+    .notNull()
+    .references(() => occasionYears.id, { onDelete: "cascade" }),
+  giftId: uuid("gift_id").references(() => gifts.id, { onDelete: "set null" }),
+  sectionKey: varchar("section_key", { length: 64 }).default("main").notNull(),
+  position: integer("position").default(0).notNull(),
+  draftName: varchar("draft_name", { length: 255 }),
+  draftNotes: text("draft_notes"),
+  draftProductUrl: text("draft_product_url"),
+  draftTargetAmount: integer("draft_target_amount"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 export const settings = pgTable("settings", {
   userId: uuid("user_id")

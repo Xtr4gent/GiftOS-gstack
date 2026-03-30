@@ -3,6 +3,68 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { giftImages, gifts, giftTags } from "@/db/schema";
 
+type GiftInsertClient = Pick<typeof db, "insert">;
+
+export type CreateGiftInput = {
+  userId: string;
+  name: string;
+  notes?: string | null;
+  productUrl?: string | null;
+  storeName?: string | null;
+  currencyCode: string;
+  basePriceAmount: number;
+  taxAmount: number;
+  shippingAmount: number;
+  totalAmount: number;
+  status: "IDEA" | "PURCHASED" | "RECEIVED" | "GIVEN";
+  isPinned?: boolean;
+  isArchived?: boolean;
+  isOneOff?: boolean;
+  isWrapped?: boolean;
+  occasionType?: "BIRTHDAY" | "ANNIVERSARY" | "CHRISTMAS" | "VALENTINES" | "OTHER" | null;
+  occasionYear?: number | null;
+  purchasedAt?: Date | null;
+  receivedAt?: Date | null;
+  wrappedAt?: Date | null;
+  givenAt?: Date | null;
+  tags?: string[];
+};
+
+export async function createGiftRecord(tx: GiftInsertClient, input: CreateGiftInput) {
+  const [createdGift] = await tx
+    .insert(gifts)
+    .values({
+      userId: input.userId,
+      name: input.name,
+      notes: input.notes ?? null,
+      productUrl: input.productUrl ?? null,
+      storeName: input.storeName ?? null,
+      currencyCode: input.currencyCode,
+      basePriceAmount: input.basePriceAmount,
+      taxAmount: input.taxAmount,
+      shippingAmount: input.shippingAmount,
+      totalAmount: input.totalAmount,
+      status: input.status,
+      isPinned: input.isPinned ?? false,
+      isArchived: input.isArchived ?? false,
+      isOneOff: input.isOneOff ?? false,
+      isWrapped: input.isWrapped ?? false,
+      occasionType: input.occasionType ?? null,
+      occasionYear: input.occasionYear ?? null,
+      purchasedAt: input.purchasedAt ?? null,
+      receivedAt: input.receivedAt ?? null,
+      wrappedAt: input.wrappedAt ?? null,
+      givenAt: input.givenAt ?? null,
+    })
+    .returning();
+
+  if (input.tags?.length) {
+    await tx.insert(giftTags).values(input.tags.map((tag) => ({ giftId: createdGift.id, tag })));
+  }
+
+  return createdGift;
+}
+
 export async function listGifts(userId: string) {
   return db
     .select({
