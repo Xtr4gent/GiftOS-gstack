@@ -358,6 +358,10 @@ label {
   justify-items: end;
 }
 
+.planner-lane-picker {
+  min-width: 220px;
+}
+
 .planner-add-grid {
   display: grid;
   gap: 1rem;

@@ -180,7 +180,23 @@ export function OccasionPlanner({
               {section.items.map((item) => (
                 <li key={item.id} className="planner-item">
                   {item.kind === "linked" ? (
-                    <div className="planner-item__linked">
+                    <form
+                      className="planner-item__linked"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        const formData = new FormData(event.currentTarget);
+                        runRequest(`${item.id}-save-lane`, () =>
+                          fetch(`/api/occasions/${typeSlug}/items/${item.id}`, {
+                            method: "PATCH",
+                            body: formData,
+                          }),
+                        );
+                      }}
+                    >
+                      <input type="hidden" name="draftName" value="" />
+                      <input type="hidden" name="draftNotes" value="" />
+                      <input type="hidden" name="draftProductUrl" value="" />
+                      <input type="hidden" name="draftTargetAmount" value="" />
                       <div className="gift-row__main">
                         {item.gift.imageId ? (
                           <img src={`/api/gift-images/${item.gift.imageId}`} alt="" className="thumb" />
@@ -196,7 +212,20 @@ export function OccasionPlanner({
                       </div>
                       <div className="planner-item__actions">
                         <strong>{formatMinorUnits(item.gift.totalAmount, item.gift.currencyCode)}</strong>
+                        <label className="planner-lane-picker">
+                          Lane
+                          <select name="sectionKey" defaultValue={item.sectionKey}>
+                            {sections.map((sectionOption) => (
+                              <option key={sectionOption.key} value={sectionOption.key}>
+                                {sectionOption.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
                         <div className="button-row button-row--tight">
+                          <button type="submit" disabled={pending === `${item.id}-save-lane`}>
+                            {pending === `${item.id}-save-lane` ? "Saving..." : "Save lane"}
+                          </button>
                           <button
                             type="button"
                             className="button-link button-link--quiet"
@@ -237,7 +266,7 @@ export function OccasionPlanner({
                           </button>
                         </div>
                       </div>
-                    </div>
+                    </form>
                   ) : (
                     <form
                       className="stack"
@@ -252,11 +281,20 @@ export function OccasionPlanner({
                         );
                       }}
                     >
-                      <input type="hidden" name="sectionKey" value={section.key} />
                       <div className="detail-grid">
                         <label>
                           Draft idea
                           <input name="draftName" defaultValue={item.draftName ?? ""} required />
+                        </label>
+                        <label>
+                          Lane
+                          <select name="sectionKey" defaultValue={item.sectionKey}>
+                            {sections.map((sectionOption) => (
+                              <option key={sectionOption.key} value={sectionOption.key}>
+                                {sectionOption.label}
+                              </option>
+                            ))}
+                          </select>
                         </label>
                         <label>
                           Target amount

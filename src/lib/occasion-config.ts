@@ -9,6 +9,15 @@ export type OccasionSection = {
   description: string;
 };
 
+type SettingsRow = typeof settings.$inferSelect | null | undefined;
+
+export type AnniversaryGuide = {
+  anniversaryNumber: number | null;
+  traditional: string;
+  modern: string;
+  gemstone: string;
+};
+
 export type OccasionConfig = {
   type: PlannableOccasionType;
   slug: string;
@@ -19,6 +28,11 @@ export type OccasionConfig = {
   plannerHeadline: string;
   sections: OccasionSection[];
   addDraftLabel: string;
+};
+
+type BaseOccasionConfig = Omit<OccasionConfig, "sections" | "plannerHeadline"> & {
+  defaultPlannerHeadline: string;
+  defaultSections: OccasionSection[];
 };
 
 const anniversaryGuideByYear: Record<number, { traditional: string; modern: string; gemstone: string }> = {
@@ -32,9 +46,14 @@ const anniversaryGuideByYear: Record<number, { traditional: string; modern: stri
   8: { traditional: "Bronze", modern: "Linens or lace", gemstone: "Tourmaline" },
   9: { traditional: "Pottery", modern: "Leather", gemstone: "Lapis lazuli" },
   10: { traditional: "Tin or aluminum", modern: "Diamond jewelry", gemstone: "Diamond" },
+  11: { traditional: "Steel", modern: "Fashion jewelry", gemstone: "Turquoise" },
+  12: { traditional: "Silk or linen", modern: "Pearls", gemstone: "Jade" },
+  13: { traditional: "Lace", modern: "Textiles", gemstone: "Citrine" },
+  14: { traditional: "Ivory", modern: "Gold jewelry", gemstone: "Opal" },
+  15: { traditional: "Crystal", modern: "Watches", gemstone: "Ruby" },
 };
 
-export const occasionConfigByType: Record<PlannableOccasionType, OccasionConfig> = {
+const baseOccasionConfigByType: Record<PlannableOccasionType, BaseOccasionConfig> = {
   BIRTHDAY: {
     type: "BIRTHDAY",
     slug: "birthday",
@@ -42,8 +61,8 @@ export const occasionConfigByType: Record<PlannableOccasionType, OccasionConfig>
     shortLabel: "Birthday",
     eyebrow: "Yearly plan",
     description: "Build the birthday plan before the date sneaks up on you.",
-    plannerHeadline: "Birthday gifts worth looking forward to",
-    sections: [{ key: "main", label: "Birthday Gifts", description: "The main birthday lineup for this year." }],
+    defaultPlannerHeadline: "Birthday gifts worth looking forward to",
+    defaultSections: [{ key: "main", label: "Birthday Gifts", description: "The main birthday lineup for this year." }],
     addDraftLabel: "Quick-add birthday idea",
   },
   ANNIVERSARY: {
@@ -53,8 +72,8 @@ export const occasionConfigByType: Record<PlannableOccasionType, OccasionConfig>
     shortLabel: "Anniversary",
     eyebrow: "Milestone plan",
     description: "Keep the anniversary thoughtful, not last-minute.",
-    plannerHeadline: "Anniversary planning with room for tradition",
-    sections: [{ key: "main", label: "Anniversary Gifts", description: "Gifts and gestures for this anniversary year." }],
+    defaultPlannerHeadline: "Anniversary planning with room for tradition",
+    defaultSections: [{ key: "open", label: "Open Ideas", description: "Ideas that do not fit a specific anniversary rule lane yet." }],
     addDraftLabel: "Quick-add anniversary idea",
   },
   CHRISTMAS: {
@@ -64,8 +83,8 @@ export const occasionConfigByType: Record<PlannableOccasionType, OccasionConfig>
     shortLabel: "Christmas",
     eyebrow: "Holiday plan",
     description: "Split stocking stuffers from the main presents so the whole plan reads clearly.",
-    plannerHeadline: "Christmas planning with room for both little and big moments",
-    sections: [
+    defaultPlannerHeadline: "Christmas planning with room for both little and big moments",
+    defaultSections: [
       { key: "stocking", label: "Stocking Stuffers", description: "Smaller gifts that still feel intentional." },
       { key: "main", label: "Main Gifts", description: "The bigger centerpiece gifts for Christmas morning." },
     ],
@@ -78,18 +97,23 @@ export const occasionConfigByType: Record<PlannableOccasionType, OccasionConfig>
     shortLabel: "Valentine's",
     eyebrow: "Occasion plan",
     description: "Keep a simple romantic plan in one place.",
-    plannerHeadline: "Valentine's ideas that feel more considered than rushed",
-    sections: [{ key: "main", label: "Valentine's Gifts", description: "Main ideas for this Valentine's Day." }],
+    defaultPlannerHeadline: "Valentine's ideas that feel more considered than rushed",
+    defaultSections: [{ key: "main", label: "Valentine's Gifts", description: "Main ideas for this Valentine's Day." }],
     addDraftLabel: "Quick-add Valentine's idea",
   },
 };
 
 export const occasionConfigBySlug = Object.fromEntries(
-  Object.values(occasionConfigByType).map((config) => [config.slug, config]),
-) as Record<string, OccasionConfig>;
+  Object.values(baseOccasionConfigByType).map((config) => [config.slug, config]),
+) as Record<string, BaseOccasionConfig>;
 
 export function getOccasionConfigByType(type: PlannableOccasionType) {
-  return occasionConfigByType[type];
+  const base = baseOccasionConfigByType[type];
+  return {
+    ...base,
+    plannerHeadline: base.defaultPlannerHeadline,
+    sections: base.defaultSections,
+  } satisfies OccasionConfig;
 }
 
 export function getOccasionConfigBySlug(slug: string) {
@@ -100,9 +124,7 @@ export function isPlannableOccasionType(value: string): value is PlannableOccasi
   return plannableOccasionTypes.includes(value as PlannableOccasionType);
 }
 
-type SettingsRow = typeof settings.$inferSelect | null | undefined;
-
-export function getAnniversaryGuide(settingsRow: SettingsRow, year: number) {
+export function getAnniversaryGuide(settingsRow: SettingsRow, year: number): AnniversaryGuide {
   const startYear = settingsRow?.anniversaryStartYear;
   const anniversaryNumber = startYear ? year - startYear : null;
 
@@ -128,5 +150,50 @@ export function getAnniversaryGuide(settingsRow: SettingsRow, year: number) {
   return {
     anniversaryNumber,
     ...guide,
+  };
+}
+
+export function resolveOccasionConfig(type: PlannableOccasionType, year: number, settingsRow: SettingsRow) {
+  const base = getOccasionConfigByType(type);
+
+  if (type !== "ANNIVERSARY") {
+    return {
+      config: base,
+      guide: null,
+    };
+  }
+
+  const guide = getAnniversaryGuide(settingsRow, year);
+
+  return {
+    config: {
+      ...base,
+      plannerHeadline: guide.anniversaryNumber
+        ? `Plan around year ${guide.anniversaryNumber}: ${guide.traditional}, ${guide.modern}, and ${guide.gemstone}`
+        : base.plannerHeadline,
+      sections: [
+        {
+          key: "traditional",
+          label: guide.anniversaryNumber ? `Traditional: ${guide.traditional}` : "Traditional Track",
+          description: "Classic anniversary materials and motifs for this milestone year.",
+        },
+        {
+          key: "modern",
+          label: guide.anniversaryNumber ? `Modern: ${guide.modern}` : "Modern Track",
+          description: "Contemporary anniversary ideas that still match the current year.",
+        },
+        {
+          key: "gemstone",
+          label: guide.anniversaryNumber ? `Gemstone: ${guide.gemstone}` : "Gemstone Track",
+          description: "Jewelry, color, or symbolic ideas connected to this year's gemstone.",
+        },
+        {
+          key: "open",
+          label: "Open Ideas",
+          description: "Ideas you like but have not mapped to a specific anniversary tradition yet.",
+        },
+      ],
+    },
+    guide,
   };
 }

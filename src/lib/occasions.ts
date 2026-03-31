@@ -2,7 +2,7 @@ import { and, asc, desc, eq, max, notInArray } from "drizzle-orm";
 
 import { db } from "@/db/client";
 import { giftImages, gifts, occasionGifts, occasionYears } from "@/db/schema";
-import { getAnniversaryGuide, getOccasionConfigByType, type PlannableOccasionType } from "@/lib/occasion-config";
+import { resolveOccasionConfig, type PlannableOccasionType } from "@/lib/occasion-config";
 import { createGiftRecord } from "@/lib/gifts";
 
 type DbClient = Pick<typeof db, "select" | "insert" | "update" | "delete">;
@@ -49,8 +49,21 @@ async function ensureOccasionYearRecord(tx: DbClient, userId: string, type: Plan
   return created;
 }
 
-function assertValidSection(type: PlannableOccasionType, sectionKey: string) {
-  const config = getOccasionConfigByType(type);
+function normalizeSectionKey(type: PlannableOccasionType, sectionKey: string) {
+  if (type === "ANNIVERSARY" && sectionKey === "main") {
+    return "open";
+  }
+
+  return sectionKey;
+}
+
+function assertValidSection(
+  type: PlannableOccasionType,
+  sectionKey: string,
+  year: number,
+  settingsRow: Awaited<ReturnType<typeof db.query.settings.findFirst>>,
+) {
+  const { config } = resolveOccasionConfig(type, year, settingsRow);
   if (!config.sections.some((section) => section.key === sectionKey)) {
     throw new Error("Invalid planner section.");
   }
@@ -63,7 +76,7 @@ async function getOwnedOccasionItem(userId: string, itemId: string) {
       occasionYearId: occasionYears.id,
       occasionType: occasionYears.occasionType,
       year: occasionYears.year,
-      sectionKey: occasionGifts.sectionKey,
+      rawSectionKey: occasionGifts.sectionKey,
       position: occasionGifts.position,
       giftId: occasionGifts.giftId,
       draftName: occasionGifts.draftName,
@@ -75,15 +88,22 @@ async function getOwnedOccasionItem(userId: string, itemId: string) {
     .innerJoin(occasionYears, eq(occasionYears.id, occasionGifts.occasionYearId))
     .where(and(eq(occasionGifts.id, itemId), eq(occasionYears.userId, userId)));
 
-  return row ?? null;
+  if (!row) {
+    return null;
+  }
+
+  return {
+    ...row,
+    sectionKey: normalizeSectionKey(row.occasionType as PlannableOccasionType, row.rawSectionKey),
+  };
 }
 
 export async function getOccasionPlannerData(userId: string, type: PlannableOccasionType, year: number) {
-  const config = getOccasionConfigByType(type);
   const plan = await ensureOccasionYear(userId, type, year);
   const settingsRow = await db.query.settings.findFirst({
     where: (settings, { eq }) => eq(settings.userId, userId),
   });
+  const { config, guide } = resolveOccasionConfig(type, year, settingsRow);
 
   const rows = await db
     .select({
@@ -109,7 +129,12 @@ export async function getOccasionPlannerData(userId: string, type: PlannableOcca
     .where(eq(occasionGifts.occasionYearId, plan.id))
     .orderBy(asc(occasionGifts.sectionKey), asc(occasionGifts.position), asc(occasionGifts.createdAt));
 
-  const linkedGiftIds = rows.map((row) => row.giftId).filter((value): value is string => Boolean(value));
+  const normalizedRows = rows.map((row) => ({
+    ...row,
+    sectionKey: normalizeSectionKey(type, row.sectionKey),
+  }));
+
+  const linkedGiftIds = normalizedRows.map((row) => row.giftId).filter((value): value is string => Boolean(value));
 
   const availableGifts = await db
     .select({
@@ -137,12 +162,12 @@ export async function getOccasionPlannerData(userId: string, type: PlannableOcca
   return {
     config,
     plan,
-    guide: type === "ANNIVERSARY" ? getAnniversaryGuide(settingsRow, year) : null,
+    guide,
     years: existingYears.map((entry) => entry.year),
     availableGifts,
     sections: config.sections.map((section) => ({
       ...section,
-      items: rows
+      items: normalizedRows
         .filter((row) => row.sectionKey === section.key)
         .map((row) =>
           row.giftId
@@ -182,7 +207,10 @@ export async function createOccasionItem(
   year: number,
   input: CreateOccasionItemInput,
 ) {
-  assertValidSection(type, input.sectionKey);
+  const settingsRow = await db.query.settings.findFirst({
+    where: (settings, { eq }) => eq(settings.userId, userId),
+  });
+  assertValidSection(type, input.sectionKey, year, settingsRow);
 
   return db.transaction(async (tx) => {
     const plan = await ensureOccasionYearRecord(tx, userId, type, year);
@@ -234,7 +262,10 @@ export async function updateOccasionItem(userId: string, itemId: string, input: 
     throw new Error("Planner item not found.");
   }
 
-  assertValidSection(owned.occasionType as PlannableOccasionType, input.sectionKey);
+  const settingsRow = await db.query.settings.findFirst({
+    where: (settings, { eq }) => eq(settings.userId, userId),
+  });
+  assertValidSection(owned.occasionType as PlannableOccasionType, input.sectionKey, owned.year, settingsRow);
 
   await db
     .update(occasionGifts)
@@ -258,14 +289,20 @@ export async function moveOccasionItem(userId: string, itemId: string, direction
   const candidates = await db
     .select({
       id: occasionGifts.id,
+      sectionKey: occasionGifts.sectionKey,
       position: occasionGifts.position,
+      createdAt: occasionGifts.createdAt,
     })
     .from(occasionGifts)
-    .where(and(eq(occasionGifts.occasionYearId, owned.occasionYearId), eq(occasionGifts.sectionKey, owned.sectionKey)))
+    .where(eq(occasionGifts.occasionYearId, owned.occasionYearId))
     .orderBy(asc(occasionGifts.position), asc(occasionGifts.createdAt));
 
-  const index = candidates.findIndex((candidate) => candidate.id === itemId);
-  const swapWith = direction === "up" ? candidates[index - 1] : candidates[index + 1];
+  const laneCandidates = candidates.filter(
+    (candidate) => normalizeSectionKey(owned.occasionType as PlannableOccasionType, candidate.sectionKey) === owned.sectionKey,
+  );
+
+  const index = laneCandidates.findIndex((candidate) => candidate.id === itemId);
+  const swapWith = direction === "up" ? laneCandidates[index - 1] : laneCandidates[index + 1];
 
   if (!swapWith) {
     return;
