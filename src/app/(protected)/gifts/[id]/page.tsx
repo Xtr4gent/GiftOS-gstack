@@ -1,16 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { auth } from "@/lib/auth";
+import { requireUserSession } from "@/lib/auth";
 import { getGiftById } from "@/lib/gifts";
 import { formatMinorUnits } from "@/lib/money";
 
 export const dynamic = "force-dynamic";
 
 export default async function GiftDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
+  const session = await requireUserSession();
   const { id } = await params;
-  const gift = await getGiftById(session!.user.id, id);
+  const gift = await getGiftById(session.user.id, id);
 
   if (!gift) {
     notFound();

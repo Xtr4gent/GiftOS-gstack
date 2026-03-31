@@ -1,12 +1,12 @@
-import { auth } from "@/lib/auth";
+import { requireUserSession } from "@/lib/auth";
 import { getGiftHistory } from "@/lib/history";
 import { formatMinorUnits } from "@/lib/money";
 
 export const dynamic = "force-dynamic";
 
 export default async function HistoryPage() {
-  const session = await auth();
-  const history = await getGiftHistory(session!.user.id);
+  const session = await requireUserSession();
+  const history = await getGiftHistory(session.user.id);
 
   return (
     <div className="stack">

@@ -1,14 +1,14 @@
 import Link from "next/link";
 
-import { auth } from "@/lib/auth";
+import { requireUserSession } from "@/lib/auth";
 import { listGifts } from "@/lib/gifts";
 import { formatMinorUnits } from "@/lib/money";
 
 export const dynamic = "force-dynamic";
 
 export default async function GiftsPage() {
-  const session = await auth();
-  const gifts = await listGifts(session!.user.id);
+  const session = await requireUserSession();
+  const gifts = await listGifts(session.user.id);
 
   return (
     <div className="stack">

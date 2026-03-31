@@ -1,12 +1,12 @@
-import { auth } from "@/lib/auth";
+import { requireUserSession } from "@/lib/auth";
 import { getDashboardData } from "@/lib/dashboard";
 import { formatMinorUnits } from "@/lib/money";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const session = await auth();
-  const data = await getDashboardData(session!.user.id);
+  const session = await requireUserSession();
+  const data = await getDashboardData(session.user.id);
 
   return (
     <div className="stack">

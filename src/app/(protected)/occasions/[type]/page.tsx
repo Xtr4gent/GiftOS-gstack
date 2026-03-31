@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { OccasionPlanner } from "@/components/occasion-planner";
-import { auth } from "@/lib/auth";
+import { requireUserSession } from "@/lib/auth";
 import { getOccasionConfigBySlug } from "@/lib/occasion-config";
 import { getOccasionPlannerData } from "@/lib/occasions";
 
@@ -14,7 +14,7 @@ export default async function OccasionPlannerPage({
   params: Promise<{ type: string }>;
   searchParams: Promise<{ year?: string }>;
 }) {
-  const session = await auth();
+  const session = await requireUserSession();
   const { type } = await params;
   const { year } = await searchParams;
   const config = getOccasionConfigBySlug(type);
@@ -25,7 +25,7 @@ export default async function OccasionPlannerPage({
 
   const requestedYear = Number(year || new Date().getFullYear());
   const planner = await getOccasionPlannerData(
-    session!.user.id,
+    session.user.id,
     config.type,
     Number.isFinite(requestedYear) ? requestedYear : new Date().getFullYear(),
   );
