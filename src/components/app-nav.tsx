@@ -4,6 +4,7 @@ export function AppNav() {
   const links = [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/gifts", label: "Gifts" },
+    { href: "/theme", label: "Theme of the Year" },
     { href: "/occasions/birthday", label: "Birthday" },
     { href: "/occasions/anniversary", label: "Anniversary" },
     { href: "/occasions/christmas", label: "Christmas" },

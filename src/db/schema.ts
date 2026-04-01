@@ -123,6 +123,38 @@ export const occasionGifts = pgTable("occasion_gifts", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const themeYears = pgTable(
+  "theme_years",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    year: integer("year").notNull(),
+    name: varchar("name", { length: 255 }).default("Theme of the Year").notNull(),
+    description: text("description"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("theme_years_user_year_idx").on(table.userId, table.year)],
+);
+
+export const themeMonthItems = pgTable("theme_month_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  themeYearId: uuid("theme_year_id")
+    .notNull()
+    .references(() => themeYears.id, { onDelete: "cascade" }),
+  monthNumber: integer("month_number").notNull(),
+  giftId: uuid("gift_id").references(() => gifts.id, { onDelete: "set null" }),
+  position: integer("position").default(0).notNull(),
+  draftName: varchar("draft_name", { length: 255 }),
+  draftNotes: text("draft_notes"),
+  draftProductUrl: text("draft_product_url"),
+  draftTargetAmount: integer("draft_target_amount"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const settings = pgTable("settings", {
   userId: uuid("user_id")
     .primaryKey()

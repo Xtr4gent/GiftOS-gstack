@@ -86,3 +86,45 @@ export const occasionItemUpdateSchema = z
     draftTargetAmount: z.number().int().min(0).optional().nullable(),
   })
   .strict();
+
+export const themeYearUpdateSchema = z.object({
+  name: z.string().trim().min(1).max(255),
+  description: z.string().trim().max(5000).optional().nullable(),
+});
+
+export const themeItemCreateSchema = z
+  .object({
+    monthNumber: z.number().int().min(1).max(12),
+    giftId: z.string().uuid().optional().nullable(),
+    draftName: z.string().trim().min(1).max(255).optional().nullable(),
+    draftNotes: z.string().trim().max(5000).optional().nullable(),
+    draftProductUrl: z.string().trim().url().optional().or(z.literal("")).nullable(),
+    draftTargetAmount: z.number().int().min(0).optional().nullable(),
+  })
+  .superRefine((value, ctx) => {
+    const hasGiftId = Boolean(value.giftId);
+    const hasDraftName = Boolean(value.draftName);
+
+    if (hasGiftId === hasDraftName) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Add either an existing gift or a draft idea.",
+        path: ["giftId"],
+      });
+    }
+  });
+
+export const themeItemUpdateSchema = z
+  .object({
+    monthNumber: z.number().int().min(1).max(12),
+    draftName: z.string().trim().min(1).max(255).optional().nullable(),
+    draftNotes: z.string().trim().max(5000).optional().nullable(),
+    draftProductUrl: z.string().trim().url().optional().or(z.literal("")).nullable(),
+    draftTargetAmount: z.number().int().min(0).optional().nullable(),
+  })
+  .strict();
+
+export const themeItemAssignSchema = z.object({
+  occasionType: z.enum(["BIRTHDAY", "ANNIVERSARY", "CHRISTMAS", "VALENTINES"]),
+  year: z.number().int().min(2000).max(2100),
+});

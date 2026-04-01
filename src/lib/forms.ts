@@ -99,3 +99,32 @@ export function parseOccasionItemFormData(formData: FormData) {
     })(),
   };
 }
+
+export function parseThemeYearFormData(formData: FormData) {
+  return {
+    name: formData.get("name")?.toString().trim() || "Theme of the Year",
+    description: nullableText(formData.get("description")),
+  };
+}
+
+export function parseThemeItemFormData(formData: FormData) {
+  return {
+    monthNumber: Number(formData.get("monthNumber")?.toString() || "1"),
+    giftId: nullableText(formData.get("giftId")),
+    draftName: nullableText(formData.get("draftName")),
+    draftNotes: nullableText(formData.get("draftNotes")),
+    draftProductUrl: nullableText(formData.get("draftProductUrl")),
+    draftTargetAmount: (() => {
+      const amount = formData.get("draftTargetAmount")?.toString();
+      if (!amount?.trim()) return null;
+      return parseMoneyToMinorUnits(amount);
+    })(),
+  };
+}
+
+export function parseThemeAssignmentFormData(formData: FormData) {
+  return {
+    occasionType: formData.get("occasionType")?.toString().trim() || "BIRTHDAY",
+    year: Number(formData.get("year")?.toString() || new Date().getFullYear().toString()),
+  };
+}

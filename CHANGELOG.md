@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.3.0 - 2026-04-01
+
+### Added
+
+- add Theme of the Year as a first-class yearly planning surface with a named annual theme and twelve month sections
+- add theme planner APIs and month-item rows that support either linked gifts or lightweight draft ideas
+- add explicit promotion from theme drafts into real gifts and assignment from linked theme items into occasion plans
+- add typed month configuration and coverage for the yearly theme planner structure
+
+### Changed
+
+- reuse the existing shared gift-creation and occasion-planning pipelines so theme items graduate into the rest of the app without duplicate logic
+
 ## 0.1.2.0 - 2026-03-30
 
 ### Added

@@ -197,3 +197,11 @@ export function resolveOccasionConfig(type: PlannableOccasionType, year: number,
     guide,
   };
 }
+
+export function getDefaultOccasionSectionKey(type: PlannableOccasionType, year: number, settingsRow: SettingsRow) {
+  if (type === "ANNIVERSARY") {
+    return "open";
+  }
+
+  return resolveOccasionConfig(type, year, settingsRow).config.sections[0]?.key ?? "main";
+}
