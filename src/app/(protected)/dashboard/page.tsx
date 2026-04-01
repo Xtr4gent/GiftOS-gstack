@@ -52,6 +52,28 @@ export default async function DashboardPage() {
           <p className="muted">Add birthday and anniversary dates in settings to unlock countdowns.</p>
         )}
       </section>
+
+      <section className="card">
+        <div className="section-head">
+          <div>
+            <span className="eyebrow">Recommendation hints</span>
+            <h3>Quiet signals from your history</h3>
+          </div>
+        </div>
+        {data.recommendationHints.length ? (
+          <div className="recommendation-grid">
+            {data.recommendationHints.map((hint) => (
+              <article key={`${hint.type}-${hint.title}`} className="recommendation-card">
+                <span className="eyebrow">{hint.type.replace("-", " ")}</span>
+                <h4>{hint.title}</h4>
+                <p className="muted">{hint.reason}</p>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="muted">Once you build up more gift history, this area will start nudging you away from repeats and toward stronger directions.</p>
+        )}
+      </section>
     </div>
   );
 }

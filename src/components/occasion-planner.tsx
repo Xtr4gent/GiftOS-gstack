@@ -65,6 +65,11 @@ type OccasionPlannerProps = {
     modern: string;
     gemstone: string;
   } | null;
+  recommendationHints: Array<{
+    type: string;
+    title: string;
+    reason: string;
+  }>;
 };
 
 function formatMinorUnits(amount: number, currencyCode: string) {
@@ -87,6 +92,7 @@ export function OccasionPlanner({
   availableGifts,
   sections,
   guide,
+  recommendationHints,
 }: OccasionPlannerProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -159,6 +165,26 @@ export function OccasionPlanner({
               <span className="eyebrow">Gemstone</span>
               <h4>{guide.gemstone}</h4>
             </article>
+          </div>
+        </section>
+      ) : null}
+
+      {recommendationHints.length ? (
+        <section className="card">
+          <div className="section-head">
+            <div>
+              <span className="eyebrow">Recommendation hints</span>
+              <h3>What the planner is noticing</h3>
+            </div>
+          </div>
+          <div className="recommendation-grid">
+            {recommendationHints.map((hint) => (
+              <article key={`${hint.type}-${hint.title}`} className="recommendation-card">
+                <span className="eyebrow">{hint.type.replace("-", " ")}</span>
+                <h4>{hint.title}</h4>
+                <p className="muted">{hint.reason}</p>
+              </article>
+            ))}
           </div>
         </section>
       ) : null}

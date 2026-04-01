@@ -39,6 +39,7 @@ export default async function OccasionPlannerPage({
       availableGifts={planner.availableGifts}
       sections={planner.sections}
       guide={planner.guide}
+      recommendationHints={planner.recommendationHints}
     />
   );
 }

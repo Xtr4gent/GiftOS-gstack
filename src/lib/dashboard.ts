@@ -3,6 +3,7 @@ import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import { gifts } from "@/db/schema";
 import { getUpcomingOccasions } from "@/lib/dates";
+import { getDashboardRecommendationHints } from "@/lib/recommendations";
 
 export const spendTrackedStatuses = ["PURCHASED", "RECEIVED", "GIVEN"] as const;
 
@@ -41,11 +42,20 @@ export async function getDashboardData(userId: string) {
       ),
     );
 
+  const yearToDateSpend = Number(ytdRows[0]?.total ?? 0);
+  const recommendationHints = await getDashboardRecommendationHints({
+    userId,
+    yearToDateSpend,
+    currencyCode: settingsRow?.defaultCurrencyCode ?? "USD",
+    nextOccasion: upcomingOccasions[0] ?? null,
+  });
+
   return {
     settings: settingsRow,
     upcomingOccasions,
     nextOccasion: upcomingOccasions[0] ?? null,
     lastGiftGiven: lastGift,
-    yearToDateSpend: Number(ytdRows[0]?.total ?? 0),
+    yearToDateSpend,
+    recommendationHints,
   };
 }

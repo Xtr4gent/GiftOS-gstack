@@ -368,6 +368,23 @@ label {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.recommendation-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.recommendation-card {
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(246, 227, 222, 0.48) 100%);
+}
+
+.recommendation-card h4 {
+  margin: 0.35rem 0 0.55rem;
+}
+
 .button-row--tight {
   flex-wrap: wrap;
   justify-content: flex-start;

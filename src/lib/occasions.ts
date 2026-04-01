@@ -4,6 +4,7 @@ import { db } from "@/db/client";
 import { giftImages, gifts, occasionGifts, occasionYears } from "@/db/schema";
 import { resolveOccasionConfig, type PlannableOccasionType } from "@/lib/occasion-config";
 import { createGiftRecord } from "@/lib/gifts";
+import { getPlannerRecommendationHints } from "@/lib/recommendations";
 
 type DbClient = Pick<typeof db, "select" | "insert" | "update" | "delete">;
 
@@ -159,45 +160,72 @@ export async function getOccasionPlannerData(userId: string, type: PlannableOcca
     .where(and(eq(occasionYears.userId, userId), eq(occasionYears.occasionType, type)))
     .orderBy(desc(occasionYears.year));
 
+  const sections = config.sections.map((section) => ({
+    ...section,
+    items: normalizedRows
+      .filter((row) => row.sectionKey === section.key)
+      .map((row) =>
+        row.giftId
+          ? {
+              id: row.id,
+              kind: "linked" as const,
+              sectionKey: row.sectionKey,
+              position: row.position,
+              gift: {
+                id: row.giftId,
+                name: row.giftName ?? "Untitled gift",
+                status: row.giftStatus ?? "IDEA",
+                totalAmount: row.giftTotalAmount ?? 0,
+                currencyCode: row.giftCurrencyCode ?? settingsRow?.defaultCurrencyCode ?? "USD",
+                productUrl: row.giftProductUrl,
+                imageId: row.imageId,
+              },
+            }
+          : {
+              id: row.id,
+              kind: "draft" as const,
+              sectionKey: row.sectionKey,
+              position: row.position,
+              draftName: row.draftName,
+              draftNotes: row.draftNotes,
+              draftProductUrl: row.draftProductUrl,
+              draftTargetAmount: row.draftTargetAmount,
+            },
+      ),
+  }));
+
+  const recommendationHints = await getPlannerRecommendationHints({
+    userId,
+    currencyCode: settingsRow?.defaultCurrencyCode ?? "USD",
+    occasionType: type,
+    occasionLabel: config.label,
+    occasionYear: year,
+    plannerSummary: {
+      itemCount: sections.reduce((sum, section) => sum + section.items.length, 0),
+      linkedCount: sections.reduce(
+        (sum, section) => sum + section.items.filter((item) => item.kind === "linked").length,
+        0,
+      ),
+      draftCount: sections.reduce(
+        (sum, section) => sum + section.items.filter((item) => item.kind === "draft").length,
+        0,
+      ),
+      sections: sections.map((section) => ({
+        key: section.key,
+        label: section.label,
+        itemCount: section.items.length,
+      })),
+    },
+  });
+
   return {
     config,
     plan,
     guide,
     years: existingYears.map((entry) => entry.year),
     availableGifts,
-    sections: config.sections.map((section) => ({
-      ...section,
-      items: normalizedRows
-        .filter((row) => row.sectionKey === section.key)
-        .map((row) =>
-          row.giftId
-            ? {
-                id: row.id,
-                kind: "linked" as const,
-                sectionKey: row.sectionKey,
-                position: row.position,
-                gift: {
-                  id: row.giftId,
-                  name: row.giftName ?? "Untitled gift",
-                  status: row.giftStatus ?? "IDEA",
-                  totalAmount: row.giftTotalAmount ?? 0,
-                  currencyCode: row.giftCurrencyCode ?? settingsRow?.defaultCurrencyCode ?? "USD",
-                  productUrl: row.giftProductUrl,
-                  imageId: row.imageId,
-                },
-              }
-            : {
-                id: row.id,
-                kind: "draft" as const,
-                sectionKey: row.sectionKey,
-                position: row.position,
-                draftName: row.draftName,
-                draftNotes: row.draftNotes,
-                draftProductUrl: row.draftProductUrl,
-                draftTargetAmount: row.draftTargetAmount,
-              },
-        ),
-    })),
+    sections,
+    recommendationHints,
   };
 }
 
