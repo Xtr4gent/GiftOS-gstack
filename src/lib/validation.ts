@@ -80,6 +80,7 @@ export const occasionItemCreateSchema = z
 export const occasionItemUpdateSchema = z
   .object({
     sectionKey: z.string().trim().min(1).max(64),
+    giftId: z.string().uuid().optional().nullable(),
     draftName: z.string().trim().min(1).max(255).optional().nullable(),
     draftNotes: z.string().trim().max(5000).optional().nullable(),
     draftProductUrl: z.string().trim().url().optional().or(z.literal("")).nullable(),
@@ -117,6 +118,7 @@ export const themeItemCreateSchema = z
 export const themeItemUpdateSchema = z
   .object({
     monthNumber: z.number().int().min(1).max(12),
+    giftId: z.string().uuid().optional().nullable(),
     draftName: z.string().trim().min(1).max(255).optional().nullable(),
     draftNotes: z.string().trim().max(5000).optional().nullable(),
     draftProductUrl: z.string().trim().url().optional().or(z.literal("")).nullable(),
