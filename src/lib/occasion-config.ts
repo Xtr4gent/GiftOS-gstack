@@ -15,6 +15,7 @@ export type OccasionSection = {
 };
 
 type SettingsRow = typeof settings.$inferSelect | null | undefined;
+type OccasionTheme = string | null | undefined;
 
 export type AnniversaryGuide = {
   anniversaryNumber: number | null;
@@ -33,7 +34,7 @@ export type OccasionConfig = {
   plannerHeadline: string;
   sections: OccasionSection[];
   addDraftLabel: string;
-  plannerVariant: "default" | "christmas";
+  plannerVariant: "default" | "christmas" | "birthday";
 };
 
 type BaseOccasionConfig = Omit<OccasionConfig, "sections" | "plannerHeadline"> & {
@@ -74,10 +75,14 @@ const baseOccasionConfigByType: Record<PlannableOccasionType, BaseOccasionConfig
         label: "Birthday Gifts",
         description: "The main birthday lineup for this year.",
         emptyState: "Start with the one gift you want to feel unmistakably like her birthday present.",
+        quickAddTitle: "Sketch the headline gift",
+        quickAddDescription: "Treat this lane like the birthday anchor. If you add more than one, they should really be contenders.",
+        quickAddMode: "full",
+        summaryLabel: "Headline",
       },
     ],
     addDraftLabel: "Quick-add birthday idea",
-    plannerVariant: "default",
+    plannerVariant: "birthday",
   },
   ANNIVERSARY: {
     type: "ANNIVERSARY",
@@ -202,8 +207,60 @@ export function getAnniversaryGuide(settingsRow: SettingsRow, year: number): Ann
   };
 }
 
-export function resolveOccasionConfig(type: PlannableOccasionType, year: number, settingsRow: SettingsRow) {
+export function resolveOccasionConfig(
+  type: PlannableOccasionType,
+  year: number,
+  settingsRow: SettingsRow,
+  occasionTheme?: OccasionTheme,
+) {
   const base = getOccasionConfigByType(type);
+
+  if (type === "BIRTHDAY") {
+    const themeLabel = occasionTheme?.trim();
+
+    return {
+      config: {
+        ...base,
+        plannerHeadline: themeLabel
+          ? `Build the birthday around "${themeLabel}"`
+          : "Choose one clear headline gift, then let the supporting layer do the rest.",
+        description: themeLabel
+          ? `This year is leaning toward ${themeLabel}. Keep the page pointed at that mood so the birthday feels intentional, not random.`
+          : base.description,
+        sections: [
+          {
+            key: "headline",
+            label: "Headline Gift",
+            description: themeLabel
+              ? `The main birthday gift should feel unmistakably part of "${themeLabel}".`
+              : "The one gift that should feel like the birthday centerpiece.",
+            emptyState: themeLabel
+              ? `Pick the gift that best expresses "${themeLabel}" before you fill the rest of the page.`
+              : "Pick the one gift you want her to remember first. Supporting ideas can come after.",
+            quickAddTitle: themeLabel ? `Sketch the main ${themeLabel} gift` : "Sketch the headline gift",
+            quickAddDescription: "Keep this lane focused. One clear main gift beats a pile of almost-right ideas.",
+            quickAddMode: "full",
+            summaryLabel: "Headline",
+          },
+          {
+            key: "supporting",
+            label: "Supporting Ideas",
+            description: themeLabel
+              ? `Cards, extras, smaller gifts, or little surprises that reinforce "${themeLabel}".`
+              : "Extras, add-ons, or smaller ideas that support the main birthday gift.",
+            emptyState: themeLabel
+              ? `Once the headline gift is clear, layer in smaller ideas that make "${themeLabel}" feel complete.`
+              : "Once the main gift is clear, collect the smaller ideas that make the birthday feel fuller.",
+            quickAddTitle: themeLabel ? `Add a supporting ${themeLabel} idea` : "Add a supporting birthday idea",
+            quickAddDescription: "Use this lane for the little layer around the main gift, not more headline contenders.",
+            quickAddMode: "simple",
+            summaryLabel: "Supporting",
+          },
+        ],
+      },
+      guide: null,
+    };
+  }
 
   if (type !== "ANNIVERSARY") {
     return {
@@ -250,6 +307,10 @@ export function resolveOccasionConfig(type: PlannableOccasionType, year: number,
 export function getDefaultOccasionSectionKey(type: PlannableOccasionType, year: number, settingsRow: SettingsRow) {
   if (type === "ANNIVERSARY") {
     return "open";
+  }
+
+  if (type === "BIRTHDAY") {
+    return "headline";
   }
 
   return resolveOccasionConfig(type, year, settingsRow).config.sections[0]?.key ?? "main";

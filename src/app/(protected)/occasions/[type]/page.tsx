@@ -34,6 +34,7 @@ export default async function OccasionPlannerPage({
     <OccasionPlanner
       typeSlug={config.slug}
       year={planner.plan.year}
+      plan={planner.plan}
       config={planner.config}
       years={planner.years}
       availableGifts={planner.availableGifts}

@@ -101,6 +101,7 @@ export const occasionYears = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     occasionType: occasionTypeEnum("occasion_type").notNull(),
     year: integer("year").notNull(),
+    themeName: varchar("theme_name", { length: 255 }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },

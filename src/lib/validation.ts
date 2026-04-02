@@ -88,6 +88,10 @@ export const occasionItemUpdateSchema = z
   })
   .strict();
 
+export const occasionYearUpdateSchema = z.object({
+  themeName: z.string().trim().min(1).max(255).optional().nullable(),
+});
+
 export const themeYearUpdateSchema = z.object({
   name: z.string().trim().min(1).max(255),
   description: z.string().trim().max(5000).optional().nullable(),

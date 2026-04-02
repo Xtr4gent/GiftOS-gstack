@@ -100,6 +100,12 @@ export function parseOccasionItemFormData(formData: FormData) {
   };
 }
 
+export function parseOccasionYearFormData(formData: FormData) {
+  return {
+    themeName: nullableText(formData.get("themeName")),
+  };
+}
+
 export function parseThemeYearFormData(formData: FormData) {
   return {
     name: formData.get("name")?.toString().trim() || "Theme of the Year",

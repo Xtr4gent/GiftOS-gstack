@@ -82,4 +82,22 @@ describe("occasion config", () => {
       summaryLabel: "Main gifts",
     });
   });
+
+  it("builds birthday lanes around the saved yearly theme", () => {
+    const resolved = resolveOccasionConfig("BIRTHDAY", 2026, null, "Cozy self-care");
+
+    expect(resolved.config.plannerVariant).toBe("birthday");
+    expect(resolved.config.plannerHeadline).toContain("Cozy self-care");
+    expect(resolved.config.sections.map((section) => section.key)).toEqual(["headline", "supporting"]);
+    expect(resolved.config.sections[0]).toMatchObject({
+      key: "headline",
+      quickAddMode: "full",
+      summaryLabel: "Headline",
+    });
+    expect(resolved.config.sections[1]).toMatchObject({
+      key: "supporting",
+      quickAddMode: "simple",
+      summaryLabel: "Supporting",
+    });
+  });
 });

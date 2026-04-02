@@ -25,6 +25,10 @@ type UpdateOccasionItemInput = {
   draftTargetAmount?: number | null;
 };
 
+type UpdateOccasionYearInput = {
+  themeName?: string | null;
+};
+
 export async function ensureOccasionYear(userId: string, type: PlannableOccasionType, year: number) {
   return db.transaction(async (tx) => ensureOccasionYearRecord(tx, userId, type, year));
 }
@@ -48,6 +52,21 @@ async function ensureOccasionYearRecord(tx: DbClient, userId: string, type: Plan
     .returning();
 
   return created;
+}
+
+export async function updateOccasionYear(userId: string, type: PlannableOccasionType, year: number, input: UpdateOccasionYearInput) {
+  const plan = await ensureOccasionYear(userId, type, year);
+
+  const [updated] = await db
+    .update(occasionYears)
+    .set({
+      themeName: input.themeName ?? null,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(occasionYears.id, plan.id), eq(occasionYears.userId, userId)))
+    .returning();
+
+  return updated;
 }
 
 function normalizeSectionKey(type: PlannableOccasionType, sectionKey: string) {
@@ -104,7 +123,7 @@ export async function getOccasionPlannerData(userId: string, type: PlannableOcca
   const settingsRow = await db.query.settings.findFirst({
     where: (settings, { eq }) => eq(settings.userId, userId),
   });
-  const { config, guide } = resolveOccasionConfig(type, year, settingsRow);
+  const { config, guide } = resolveOccasionConfig(type, year, settingsRow, plan.themeName);
 
   const rows = await db
     .select({

@@ -1,0 +1,1 @@
+ALTER TABLE "occasion_years" ADD COLUMN "theme_name" varchar(255);

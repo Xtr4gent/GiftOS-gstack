@@ -20,7 +20,7 @@ type PlannerSection = {
   emptyState?: string;
   quickAddTitle?: string;
   quickAddDescription?: string;
-  quickAddMode?: "simple" | "full";
+  quickAddMode?: string;
   summaryLabel?: string;
   items: Array<
     | {
@@ -54,13 +54,18 @@ type PlannerSection = {
 type OccasionPlannerProps = {
   typeSlug: string;
   year: number;
+  plan: {
+    id: string;
+    year: number;
+    themeName: string | null;
+  };
   config: {
     label: string;
     eyebrow: string;
     description: string;
     plannerHeadline: string;
     addDraftLabel: string;
-    plannerVariant: "default" | "christmas";
+    plannerVariant: "default" | "christmas" | "birthday";
   };
   years: number[];
   availableGifts: AvailableGift[];
@@ -93,6 +98,7 @@ function targetAmountInput(amount: number | null) {
 export function OccasionPlanner({
   typeSlug,
   year,
+  plan,
   config,
   years,
   availableGifts,
@@ -111,6 +117,8 @@ export function OccasionPlanner({
   const totalLinkedCount = totalItemCount - totalDraftCount;
   const stockingSection = sections.find((section) => section.key === "stocking");
   const mainSection = sections.find((section) => section.key === "main");
+  const headlineSection = sections.find((section) => section.key === "headline");
+  const supportingSection = sections.find((section) => section.key === "supporting");
 
   async function runRequest(key: string, request: () => Promise<Response>, onSuccess?: (response: Response) => Promise<void> | void) {
     setPending(key);
@@ -347,12 +355,88 @@ export function OccasionPlanner({
         </section>
       ) : null}
 
+      {config.plannerVariant === "birthday" ? (
+        <section className="card birthday-theme">
+          <div className="section-head">
+            <div>
+              <span className="eyebrow">Birthday framing</span>
+              <h3>Give this year a vibe before you fill the page</h3>
+            </div>
+            <p className="muted">
+              A short theme keeps the birthday from turning into a random list. One clear headline gift should lead, then the supporting layer can echo it.
+            </p>
+          </div>
+          <form
+            className="stack"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const formData = new FormData(event.currentTarget);
+              runRequest("birthday-theme-save", () =>
+                fetch(`/api/occasions/${typeSlug}?year=${year}`, {
+                  method: "PATCH",
+                  body: formData,
+                }),
+              );
+            }}
+          >
+            <div className="detail-grid">
+              <label className="grid__full">
+                Birthday theme
+                <input
+                  name="themeName"
+                  defaultValue={plan.themeName ?? ""}
+                  placeholder="Cozy self-care, weekend away, little luxuries, garden romance..."
+                />
+              </label>
+            </div>
+            <div className="button-row button-row--tight">
+              <button type="submit" disabled={pending === "birthday-theme-save"}>
+                {pending === "birthday-theme-save" ? "Saving..." : "Save birthday theme"}
+              </button>
+            </div>
+          </form>
+          <div className="card-grid birthday-summary__grid">
+            <article className="card card--nested birthday-summary__card">
+              <span className="eyebrow">Headline lane</span>
+              <h4>{headlineSection?.items.length ?? 0}</h4>
+              <p className="muted">
+                {headlineSection?.items.length === 1
+                  ? "Good. One clear main gift is exactly the right shape."
+                  : headlineSection?.items.length
+                    ? "This lane should usually resolve to one clear main gift."
+                    : "Empty is fine for now, but this lane should eventually hold the birthday anchor."}
+              </p>
+            </article>
+            <article className="card card--nested birthday-summary__card">
+              <span className="eyebrow">Supporting ideas</span>
+              <h4>{supportingSection?.items.length ?? 0}</h4>
+              <p className="muted">Cards, extras, small surprises, or add-ons that reinforce the main idea.</p>
+            </article>
+            <article className="card card--nested birthday-summary__card">
+              <span className="eyebrow">This year&apos;s vibe</span>
+              <h4>{plan.themeName ?? "Open"}</h4>
+              <p className="muted">
+                {plan.themeName
+                  ? "Use the theme to decide whether a new idea belongs in the headline lane or just supports it."
+                  : "Save a short theme once the mood of the birthday becomes clear."}
+              </p>
+            </article>
+          </div>
+        </section>
+      ) : null}
+
       {error ? <p className="form__error">{error}</p> : null}
 
       {sections.map((section) => (
         <section
           key={section.key}
-          className={`card stack${config.plannerVariant === "christmas" ? " planner-section planner-section--christmas" : ""}`}
+          className={`card stack${
+            config.plannerVariant === "christmas"
+              ? " planner-section planner-section--christmas"
+              : config.plannerVariant === "birthday"
+                ? " planner-section planner-section--birthday"
+                : ""
+          }`}
         >
           <div className="section-head planner-section__header">
             <div className="planner-section__title">
@@ -581,7 +665,7 @@ export function OccasionPlanner({
           )}
 
           <div className="planner-add-grid">
-            {config.plannerVariant === "christmas" ? (
+            {config.plannerVariant === "christmas" || config.plannerVariant === "birthday" ? (
               <>
                 {renderDraftForm(section)}
                 {renderLinkForm(section)}
