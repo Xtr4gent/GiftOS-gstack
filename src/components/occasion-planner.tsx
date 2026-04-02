@@ -132,6 +132,117 @@ export function OccasionPlanner({
     router.refresh();
   }
 
+  function renderLinkForm(section: PlannerSection) {
+    return (
+      <form
+        className="card card--nested stack planner-add-card planner-add-card--vault"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const formData = new FormData(event.currentTarget);
+          runRequest(`${section.key}-link`, () =>
+            fetch(`/api/occasions/${typeSlug}/items?year=${year}`, {
+              method: "POST",
+              body: formData,
+            }),
+          );
+          event.currentTarget.reset();
+        }}
+      >
+        <input type="hidden" name="sectionKey" value={section.key} />
+        <div>
+          <span className="eyebrow">From gift vault</span>
+          <h4>Add an existing gift</h4>
+        </div>
+        <label>
+          Saved gift
+          <select name="giftId" defaultValue="">
+            <option value="">Choose a saved gift</option>
+            {availableGifts.map((gift) => (
+              <option key={gift.id} value={gift.id}>
+                {gift.name} - {gift.status} - {formatMinorUnits(gift.totalAmount, gift.currencyCode)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button type="submit" disabled={pending === `${section.key}-link`}>
+          {pending === `${section.key}-link` ? "Adding..." : "Add saved gift"}
+        </button>
+      </form>
+    );
+  }
+
+  function renderDraftForm(section: PlannerSection) {
+    return (
+      <form
+        className="card card--nested stack planner-add-card planner-add-card--primary"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const formData = new FormData(event.currentTarget);
+          runRequest(`${section.key}-draft`, () =>
+            fetch(`/api/occasions/${typeSlug}/items?year=${year}`, {
+              method: "POST",
+              body: formData,
+            }),
+          );
+          event.currentTarget.reset();
+        }}
+      >
+        <input type="hidden" name="sectionKey" value={section.key} />
+        <div>
+          <span className="eyebrow">Quick add</span>
+          <h4>{section.quickAddTitle ?? config.addDraftLabel}</h4>
+        </div>
+        <label>
+          Draft name
+          <input
+            name="draftName"
+            placeholder={
+              section.quickAddMode === "simple"
+                ? "Lip balm, cozy socks, favorite candy..."
+                : "Spa set, weekend getaway, handwritten note..."
+            }
+            required
+          />
+        </label>
+        <label>
+          Target amount
+          <input name="draftTargetAmount" type="number" min="0" step="0.01" placeholder="0.00" />
+        </label>
+        {section.quickAddMode !== "simple" ? (
+          <>
+            <label>
+              Product URL
+              <input name="draftProductUrl" type="url" placeholder="https://..." />
+            </label>
+            <label>
+              Notes
+              <textarea
+                name="draftNotes"
+                rows={3}
+                placeholder="Anything you want to remember while the idea is fresh."
+              />
+            </label>
+          </>
+        ) : (
+          <>
+            <input type="hidden" name="draftProductUrl" value="" />
+            <input type="hidden" name="draftNotes" value="" />
+            <p className="muted">
+              Use this faster lane for little ideas that do not need much explanation yet.
+            </p>
+          </>
+        )}
+        <button type="submit" disabled={pending === `${section.key}-draft`}>
+          {pending === `${section.key}-draft`
+            ? "Adding..."
+            : section.quickAddMode === "simple"
+              ? "Add stuffer idea"
+              : "Add draft idea"}
+        </button>
+      </form>
+    );
+  }
+
   return (
     <div className="stack">
       <section className="hero-card hero-card--editorial">
@@ -470,108 +581,17 @@ export function OccasionPlanner({
           )}
 
           <div className="planner-add-grid">
-            <form
-              className="card card--nested stack"
-              onSubmit={(event) => {
-                event.preventDefault();
-                const formData = new FormData(event.currentTarget);
-                runRequest(`${section.key}-link`, () =>
-                  fetch(`/api/occasions/${typeSlug}/items?year=${year}`, {
-                    method: "POST",
-                    body: formData,
-                  }),
-                );
-                event.currentTarget.reset();
-              }}
-            >
-              <input type="hidden" name="sectionKey" value={section.key} />
-              <div>
-                <span className="eyebrow">From gift vault</span>
-                <h4>Add an existing gift</h4>
-              </div>
-              <label>
-                Saved gift
-                <select name="giftId" defaultValue="">
-                  <option value="">Choose a saved gift</option>
-                  {availableGifts.map((gift) => (
-                    <option key={gift.id} value={gift.id}>
-                      {gift.name} - {gift.status} - {formatMinorUnits(gift.totalAmount, gift.currencyCode)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button type="submit" disabled={pending === `${section.key}-link`}>
-                {pending === `${section.key}-link` ? "Adding..." : "Add saved gift"}
-              </button>
-            </form>
-
-            <form
-              className="card card--nested stack"
-              onSubmit={(event) => {
-                event.preventDefault();
-                const formData = new FormData(event.currentTarget);
-                runRequest(`${section.key}-draft`, () =>
-                  fetch(`/api/occasions/${typeSlug}/items?year=${year}`, {
-                    method: "POST",
-                    body: formData,
-                  }),
-                );
-                event.currentTarget.reset();
-              }}
-            >
-              <input type="hidden" name="sectionKey" value={section.key} />
-              <div>
-                <span className="eyebrow">Quick add</span>
-                <h4>{section.quickAddTitle ?? config.addDraftLabel}</h4>
-              </div>
-              <label>
-                Draft name
-                <input
-                  name="draftName"
-                  placeholder={
-                    section.quickAddMode === "simple"
-                      ? "Lip balm, cozy socks, favorite candy..."
-                      : "Spa set, weekend getaway, handwritten note..."
-                  }
-                  required
-                />
-              </label>
-              <label>
-                Target amount
-                <input name="draftTargetAmount" type="number" min="0" step="0.01" placeholder="0.00" />
-              </label>
-              {section.quickAddMode !== "simple" ? (
-                <>
-                  <label>
-                    Product URL
-                    <input name="draftProductUrl" type="url" placeholder="https://..." />
-                  </label>
-                  <label>
-                    Notes
-                    <textarea
-                      name="draftNotes"
-                      rows={3}
-                      placeholder="Anything you want to remember while the idea is fresh."
-                    />
-                  </label>
-                </>
-              ) : (
-                <>
-                  <input type="hidden" name="draftProductUrl" value="" />
-                  <input type="hidden" name="draftNotes" value="" />
-                  <p className="muted">
-                    Use this faster lane for little ideas that do not need much explanation yet.
-                  </p>
-                </>
-              )}
-              <button type="submit" disabled={pending === `${section.key}-draft`}>
-                {pending === `${section.key}-draft`
-                  ? "Adding..."
-                  : section.quickAddMode === "simple"
-                    ? "Add stuffer idea"
-                    : "Add draft idea"}
-              </button>
-            </form>
+            {config.plannerVariant === "christmas" ? (
+              <>
+                {renderDraftForm(section)}
+                {renderLinkForm(section)}
+              </>
+            ) : (
+              <>
+                {renderLinkForm(section)}
+                {renderDraftForm(section)}
+              </>
+            )}
           </div>
         </section>
       ))}
