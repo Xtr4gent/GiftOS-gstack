@@ -7,6 +7,11 @@ export type OccasionSection = {
   key: string;
   label: string;
   description: string;
+  emptyState?: string;
+  quickAddTitle?: string;
+  quickAddDescription?: string;
+  quickAddMode?: "simple" | "full";
+  summaryLabel?: string;
 };
 
 type SettingsRow = typeof settings.$inferSelect | null | undefined;
@@ -28,6 +33,7 @@ export type OccasionConfig = {
   plannerHeadline: string;
   sections: OccasionSection[];
   addDraftLabel: string;
+  plannerVariant: "default" | "christmas";
 };
 
 type BaseOccasionConfig = Omit<OccasionConfig, "sections" | "plannerHeadline"> & {
@@ -62,8 +68,16 @@ const baseOccasionConfigByType: Record<PlannableOccasionType, BaseOccasionConfig
     eyebrow: "Yearly plan",
     description: "Build the birthday plan before the date sneaks up on you.",
     defaultPlannerHeadline: "Birthday gifts worth looking forward to",
-    defaultSections: [{ key: "main", label: "Birthday Gifts", description: "The main birthday lineup for this year." }],
+    defaultSections: [
+      {
+        key: "main",
+        label: "Birthday Gifts",
+        description: "The main birthday lineup for this year.",
+        emptyState: "Start with the one gift you want to feel unmistakably like her birthday present.",
+      },
+    ],
     addDraftLabel: "Quick-add birthday idea",
+    plannerVariant: "default",
   },
   ANNIVERSARY: {
     type: "ANNIVERSARY",
@@ -73,8 +87,16 @@ const baseOccasionConfigByType: Record<PlannableOccasionType, BaseOccasionConfig
     eyebrow: "Milestone plan",
     description: "Keep the anniversary thoughtful, not last-minute.",
     defaultPlannerHeadline: "Anniversary planning with room for tradition",
-    defaultSections: [{ key: "open", label: "Open Ideas", description: "Ideas that do not fit a specific anniversary rule lane yet." }],
+    defaultSections: [
+      {
+        key: "open",
+        label: "Open Ideas",
+        description: "Ideas that do not fit a specific anniversary rule lane yet.",
+        emptyState: "Catch the ideas you love here first, then move them into a tradition lane when the plan sharpens.",
+      },
+    ],
     addDraftLabel: "Quick-add anniversary idea",
+    plannerVariant: "default",
   },
   CHRISTMAS: {
     type: "CHRISTMAS",
@@ -85,10 +107,29 @@ const baseOccasionConfigByType: Record<PlannableOccasionType, BaseOccasionConfig
     description: "Split stocking stuffers from the main presents so the whole plan reads clearly.",
     defaultPlannerHeadline: "Christmas planning with room for both little and big moments",
     defaultSections: [
-      { key: "stocking", label: "Stocking Stuffers", description: "Smaller gifts that still feel intentional." },
-      { key: "main", label: "Main Gifts", description: "The bigger centerpiece gifts for Christmas morning." },
+      {
+        key: "stocking",
+        label: "Stocking Stuffers",
+        description: "Small, easy layers that make the stocking feel playful and full.",
+        emptyState: "Start with two or three easy wins here: cozy, useful, funny, or unexpectedly sweet.",
+        quickAddTitle: "Add a stuffer fast",
+        quickAddDescription: "Keep this one light. Capture the small wins while they are still obvious.",
+        quickAddMode: "simple",
+        summaryLabel: "Stuffers",
+      },
+      {
+        key: "main",
+        label: "Main Gifts",
+        description: "The fewer, bigger gifts that carry the weight of Christmas morning.",
+        emptyState: "Leave room for only the gifts that feel like the headline presents, not every possible idea.",
+        quickAddTitle: "Sketch a main gift",
+        quickAddDescription: "Use the fuller draft here when the idea needs notes, links, or a bigger spend target.",
+        quickAddMode: "full",
+        summaryLabel: "Main gifts",
+      },
     ],
     addDraftLabel: "Quick-add Christmas idea",
+    plannerVariant: "christmas",
   },
   VALENTINES: {
     type: "VALENTINES",
@@ -98,8 +139,16 @@ const baseOccasionConfigByType: Record<PlannableOccasionType, BaseOccasionConfig
     eyebrow: "Occasion plan",
     description: "Keep a simple romantic plan in one place.",
     defaultPlannerHeadline: "Valentine's ideas that feel more considered than rushed",
-    defaultSections: [{ key: "main", label: "Valentine's Gifts", description: "Main ideas for this Valentine's Day." }],
+    defaultSections: [
+      {
+        key: "main",
+        label: "Valentine's Gifts",
+        description: "Main ideas for this Valentine's Day.",
+        emptyState: "A few well-chosen ideas are enough here. Keep the page simple and deliberate.",
+      },
+    ],
     addDraftLabel: "Quick-add Valentine's idea",
+    plannerVariant: "default",
   },
 };
 

@@ -343,6 +343,60 @@ label {
   gap: 1.25rem;
 }
 
+.planner-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.planner-section--christmas {
+  background:
+    linear-gradient(180deg, rgba(255, 253, 252, 0.98) 0%, rgba(248, 239, 228, 0.95) 100%);
+}
+
+.planner-section--christmas::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 6px;
+  background: linear-gradient(180deg, var(--gold) 0%, rgba(166, 75, 60, 0.8) 100%);
+}
+
+.planner-section__header,
+.planner-section__title {
+  align-items: start;
+}
+
+.planner-section__title {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.planner-section__heading-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.planner-section__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(214, 179, 106, 0.18);
+  border: 1px solid rgba(214, 179, 106, 0.45);
+  font-family: var(--font-utility), sans-serif;
+  font-size: 0.88rem;
+}
+
+.planner-section__note,
+.planner-section__empty {
+  color: var(--muted);
+  max-width: 52rem;
+}
+
 .planner-item {
   border: 1px solid var(--line);
   border-radius: 24px;
@@ -395,6 +449,21 @@ label {
 
 .recommendation-card h4 {
   margin: 0.35rem 0 0.55rem;
+}
+
+.christmas-summary {
+  background:
+    linear-gradient(140deg, rgba(255, 250, 245, 0.98) 0%, rgba(248, 235, 226, 0.96) 100%);
+  border-color: rgba(214, 179, 106, 0.55);
+}
+
+.christmas-summary__grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.christmas-summary__card h4 {
+  font-size: 2rem;
+  margin: 0.35rem 0 0.45rem;
 }
 
 .button-row--tight {

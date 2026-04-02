@@ -65,4 +65,21 @@ describe("occasion config", () => {
     ]);
     expect(resolved.config.sections[0]?.label).toBe("Traditional: Wood");
   });
+
+  it("adds christmas-specific summary and quick-add metadata", () => {
+    const resolved = resolveOccasionConfig("CHRISTMAS", 2026, null);
+
+    expect(resolved.config.plannerVariant).toBe("christmas");
+    expect(resolved.config.sections.map((section) => section.key)).toEqual(["stocking", "main"]);
+    expect(resolved.config.sections[0]).toMatchObject({
+      key: "stocking",
+      quickAddMode: "simple",
+      summaryLabel: "Stuffers",
+    });
+    expect(resolved.config.sections[1]).toMatchObject({
+      key: "main",
+      quickAddMode: "full",
+      summaryLabel: "Main gifts",
+    });
+  });
 });

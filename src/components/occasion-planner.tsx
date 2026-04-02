@@ -17,6 +17,11 @@ type PlannerSection = {
   key: string;
   label: string;
   description: string;
+  emptyState?: string;
+  quickAddTitle?: string;
+  quickAddDescription?: string;
+  quickAddMode?: "simple" | "full";
+  summaryLabel?: string;
   items: Array<
     | {
         id: string;
@@ -55,6 +60,7 @@ type OccasionPlannerProps = {
     description: string;
     plannerHeadline: string;
     addDraftLabel: string;
+    plannerVariant: "default" | "christmas";
   };
   years: number[];
   availableGifts: AvailableGift[];
@@ -97,6 +103,14 @@ export function OccasionPlanner({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<string | null>(null);
+  const totalItemCount = sections.reduce((sum, section) => sum + section.items.length, 0);
+  const totalDraftCount = sections.reduce(
+    (sum, section) => sum + section.items.filter((item) => item.kind === "draft").length,
+    0,
+  );
+  const totalLinkedCount = totalItemCount - totalDraftCount;
+  const stockingSection = sections.find((section) => section.key === "stocking");
+  const mainSection = sections.find((section) => section.key === "main");
 
   async function runRequest(key: string, request: () => Promise<Response>, onSuccess?: (response: Response) => Promise<void> | void) {
     setPending(key);
@@ -189,17 +203,58 @@ export function OccasionPlanner({
         </section>
       ) : null}
 
+      {config.plannerVariant === "christmas" ? (
+        <section className="card christmas-summary">
+          <div className="section-head">
+            <div>
+              <span className="eyebrow">Holiday rhythm</span>
+              <h3>Balance the little wins with the headliners</h3>
+            </div>
+            <p className="muted">
+              Let the stocking feel layered and playful. Keep the main gifts fewer, clearer, and worth waking up for.
+            </p>
+          </div>
+          <div className="card-grid christmas-summary__grid">
+            <article className="card card--nested christmas-summary__card">
+              <span className="eyebrow">{stockingSection?.summaryLabel ?? "Stuffers"}</span>
+              <h4>{stockingSection?.items.length ?? 0}</h4>
+              <p className="muted">Easy little wins that make the stocking feel full.</p>
+            </article>
+            <article className="card card--nested christmas-summary__card">
+              <span className="eyebrow">{mainSection?.summaryLabel ?? "Main gifts"}</span>
+              <h4>{mainSection?.items.length ?? 0}</h4>
+              <p className="muted">Bigger gifts worth protecting space and budget for.</p>
+            </article>
+            <article className="card card--nested christmas-summary__card">
+              <span className="eyebrow">Plan mix</span>
+              <h4>{totalItemCount}</h4>
+              <p className="muted">
+                {totalLinkedCount} linked gifts and {totalDraftCount} draft {totalDraftCount === 1 ? "idea" : "ideas"}.
+              </p>
+            </article>
+          </div>
+        </section>
+      ) : null}
+
       {error ? <p className="form__error">{error}</p> : null}
 
       {sections.map((section) => (
-        <section key={section.key} className="card stack">
-          <div className="section-head">
-            <div>
+        <section
+          key={section.key}
+          className={`card stack${config.plannerVariant === "christmas" ? " planner-section planner-section--christmas" : ""}`}
+        >
+          <div className="section-head planner-section__header">
+            <div className="planner-section__title">
               <span className="eyebrow">{config.label}</span>
-              <h3>{section.label}</h3>
+              <div className="planner-section__heading-row">
+                <h3>{section.label}</h3>
+                <span className="planner-section__count">{section.items.length}</span>
+              </div>
             </div>
             <p className="muted">{section.description}</p>
           </div>
+
+          {section.quickAddDescription ? <p className="planner-section__note">{section.quickAddDescription}</p> : null}
 
           {section.items.length ? (
             <ul className="plain-list planner-list">
@@ -409,7 +464,9 @@ export function OccasionPlanner({
               ))}
             </ul>
           ) : (
-            <p className="muted">This section is empty right now. Add a saved gift or sketch a draft idea below.</p>
+            <p className="planner-section__empty">
+              {section.emptyState ?? "This section is empty right now. Add a saved gift or sketch a draft idea below."}
+            </p>
           )}
 
           <div className="planner-add-grid">
@@ -465,26 +522,54 @@ export function OccasionPlanner({
               <input type="hidden" name="sectionKey" value={section.key} />
               <div>
                 <span className="eyebrow">Quick add</span>
-                <h4>{config.addDraftLabel}</h4>
+                <h4>{section.quickAddTitle ?? config.addDraftLabel}</h4>
               </div>
               <label>
                 Draft name
-                <input name="draftName" placeholder="Spa set, weekend getaway, handwritten note..." required />
+                <input
+                  name="draftName"
+                  placeholder={
+                    section.quickAddMode === "simple"
+                      ? "Lip balm, cozy socks, favorite candy..."
+                      : "Spa set, weekend getaway, handwritten note..."
+                  }
+                  required
+                />
               </label>
               <label>
                 Target amount
                 <input name="draftTargetAmount" type="number" min="0" step="0.01" placeholder="0.00" />
               </label>
-              <label>
-                Product URL
-                <input name="draftProductUrl" type="url" placeholder="https://..." />
-              </label>
-              <label>
-                Notes
-                <textarea name="draftNotes" rows={3} placeholder="Anything you want to remember while the idea is fresh." />
-              </label>
+              {section.quickAddMode !== "simple" ? (
+                <>
+                  <label>
+                    Product URL
+                    <input name="draftProductUrl" type="url" placeholder="https://..." />
+                  </label>
+                  <label>
+                    Notes
+                    <textarea
+                      name="draftNotes"
+                      rows={3}
+                      placeholder="Anything you want to remember while the idea is fresh."
+                    />
+                  </label>
+                </>
+              ) : (
+                <>
+                  <input type="hidden" name="draftProductUrl" value="" />
+                  <input type="hidden" name="draftNotes" value="" />
+                  <p className="muted">
+                    Use this faster lane for little ideas that do not need much explanation yet.
+                  </p>
+                </>
+              )}
               <button type="submit" disabled={pending === `${section.key}-draft`}>
-                {pending === `${section.key}-draft` ? "Adding..." : "Add draft idea"}
+                {pending === `${section.key}-draft`
+                  ? "Adding..."
+                  : section.quickAddMode === "simple"
+                    ? "Add stuffer idea"
+                    : "Add draft idea"}
               </button>
             </form>
           </div>
