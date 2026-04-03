@@ -98,6 +98,7 @@ describe("occasion config", () => {
       key: "supporting",
       quickAddMode: "simple",
       summaryLabel: "Supporting",
+      quickAddSubmitLabel: "Add supporting idea",
     });
   });
 });
