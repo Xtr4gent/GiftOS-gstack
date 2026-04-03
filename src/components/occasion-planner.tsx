@@ -21,6 +21,7 @@ type PlannerSection = {
   quickAddTitle?: string;
   quickAddDescription?: string;
   quickAddMode?: string;
+  quickAddSubmitLabel?: string;
   summaryLabel?: string;
   items: Array<
     | {
@@ -243,9 +244,7 @@ export function OccasionPlanner({
         <button type="submit" disabled={pending === `${section.key}-draft`}>
           {pending === `${section.key}-draft`
             ? "Adding..."
-            : section.quickAddMode === "simple"
-              ? "Add stuffer idea"
-              : "Add draft idea"}
+            : section.quickAddSubmitLabel ?? "Add draft idea"}
         </button>
       </form>
     );

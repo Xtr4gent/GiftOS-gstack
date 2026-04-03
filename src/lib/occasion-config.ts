@@ -11,6 +11,7 @@ export type OccasionSection = {
   quickAddTitle?: string;
   quickAddDescription?: string;
   quickAddMode?: "simple" | "full";
+  quickAddSubmitLabel?: string;
   summaryLabel?: string;
 };
 
@@ -120,6 +121,7 @@ const baseOccasionConfigByType: Record<PlannableOccasionType, BaseOccasionConfig
         quickAddTitle: "Add a stuffer fast",
         quickAddDescription: "Keep this one light. Capture the small wins while they are still obvious.",
         quickAddMode: "simple",
+        quickAddSubmitLabel: "Add stuffer idea",
         summaryLabel: "Stuffers",
       },
       {
@@ -254,6 +256,7 @@ export function resolveOccasionConfig(
             quickAddTitle: themeLabel ? `Add a supporting ${themeLabel} idea` : "Add a supporting birthday idea",
             quickAddDescription: "Use this lane for the little layer around the main gift, not more headline contenders.",
             quickAddMode: "simple",
+            quickAddSubmitLabel: "Add supporting idea",
             summaryLabel: "Supporting",
           },
         ],
