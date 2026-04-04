@@ -35,7 +35,7 @@ export type OccasionConfig = {
   plannerHeadline: string;
   sections: OccasionSection[];
   addDraftLabel: string;
-  plannerVariant: "default" | "christmas" | "birthday";
+  plannerVariant: "default" | "christmas" | "birthday" | "valentines";
 };
 
 type BaseOccasionConfig = Omit<OccasionConfig, "sections" | "plannerHeadline"> & {
@@ -144,8 +144,8 @@ const baseOccasionConfigByType: Record<PlannableOccasionType, BaseOccasionConfig
     label: "Valentine's Day",
     shortLabel: "Valentine's",
     eyebrow: "Occasion plan",
-    description: "Keep a simple romantic plan in one place.",
-    defaultPlannerHeadline: "Valentine's ideas that feel more considered than rushed",
+    description: "Keep the romantic plan thoughtful, light, and easy to act on.",
+    defaultPlannerHeadline: "One meaningful gesture, then the little touches that make it feel personal",
     defaultSections: [
       {
         key: "main",
@@ -155,7 +155,7 @@ const baseOccasionConfigByType: Record<PlannableOccasionType, BaseOccasionConfig
       },
     ],
     addDraftLabel: "Quick-add Valentine's idea",
-    plannerVariant: "default",
+    plannerVariant: "valentines",
   },
 };
 
@@ -265,6 +265,39 @@ export function resolveOccasionConfig(
     };
   }
 
+  if (type === "VALENTINES") {
+    return {
+      config: {
+        ...base,
+        plannerHeadline: "Choose one memorable gesture, then let the sweeter little touches support it.",
+        sections: [
+          {
+            key: "gesture",
+            label: "Main Gesture",
+            description: "The one idea that should carry the emotional weight of the day.",
+            emptyState: "Pick the main gesture first, dinner, flowers, jewelry, a note, a plan, before the smaller extras start piling up.",
+            quickAddTitle: "Sketch the main gesture",
+            quickAddDescription: "Keep this lane slower and more deliberate. This is where the day gets its shape.",
+            quickAddMode: "full",
+            summaryLabel: "Main gesture",
+          },
+          {
+            key: "extras",
+            label: "Sweet Extras",
+            description: "Small thoughtful touches that make the day feel layered instead of rushed.",
+            emptyState: "Capture the easy romantic wins here: candy, flowers, little notes, cozy add-ons, or tiny surprises.",
+            quickAddTitle: "Add a sweet extra",
+            quickAddDescription: "This lane should stay easy. Toss in the little ideas while they are still obvious.",
+            quickAddMode: "simple",
+            quickAddSubmitLabel: "Add sweet extra",
+            summaryLabel: "Sweet extras",
+          },
+        ],
+      },
+      guide: null,
+    };
+  }
+
   if (type !== "ANNIVERSARY") {
     return {
       config: base,
@@ -314,6 +347,10 @@ export function getDefaultOccasionSectionKey(type: PlannableOccasionType, year: 
 
   if (type === "BIRTHDAY") {
     return "headline";
+  }
+
+  if (type === "VALENTINES") {
+    return "gesture";
   }
 
   return resolveOccasionConfig(type, year, settingsRow).config.sections[0]?.key ?? "main";

@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { PlannerSummaryPanel } from "@/components/planner-summary-panel";
+import { buildPlannerSummary } from "@/lib/planner-summary";
+
 type AvailableGift = {
   id: string;
   name: string;
@@ -66,7 +69,7 @@ type OccasionPlannerProps = {
     description: string;
     plannerHeadline: string;
     addDraftLabel: string;
-    plannerVariant: "default" | "christmas" | "birthday";
+    plannerVariant: "default" | "christmas" | "birthday" | "valentines";
   };
   years: number[];
   availableGifts: AvailableGift[];
@@ -110,16 +113,15 @@ export function OccasionPlanner({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<string | null>(null);
-  const totalItemCount = sections.reduce((sum, section) => sum + section.items.length, 0);
-  const totalDraftCount = sections.reduce(
-    (sum, section) => sum + section.items.filter((item) => item.kind === "draft").length,
-    0,
-  );
-  const totalLinkedCount = totalItemCount - totalDraftCount;
-  const stockingSection = sections.find((section) => section.key === "stocking");
-  const mainSection = sections.find((section) => section.key === "main");
-  const headlineSection = sections.find((section) => section.key === "headline");
-  const supportingSection = sections.find((section) => section.key === "supporting");
+  const plannerSummary = buildPlannerSummary({
+    variant: config.plannerVariant,
+    themeName: plan.themeName,
+    sections: sections.map((section) => ({
+      key: section.key,
+      label: section.label,
+      itemCount: section.items.length,
+    })),
+  });
 
   async function runRequest(key: string, request: () => Promise<Response>, onSuccess?: (response: Response) => Promise<void> | void) {
     setPending(key);
@@ -301,6 +303,42 @@ export function OccasionPlanner({
         </section>
       ) : null}
 
+      {plannerSummary ? (
+        <PlannerSummaryPanel summary={plannerSummary}>
+          {config.plannerVariant === "birthday" ? (
+            <form
+              className="stack"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const formData = new FormData(event.currentTarget);
+                runRequest("birthday-theme-save", () =>
+                  fetch(`/api/occasions/${typeSlug}?year=${year}`, {
+                    method: "PATCH",
+                    body: formData,
+                  }),
+                );
+              }}
+            >
+              <div className="detail-grid">
+                <label className="grid__full">
+                  Birthday theme
+                  <input
+                    name="themeName"
+                    defaultValue={plan.themeName ?? ""}
+                    placeholder="Cozy self-care, weekend away, little luxuries, garden romance..."
+                  />
+                </label>
+              </div>
+              <div className="button-row button-row--tight">
+                <button type="submit" disabled={pending === "birthday-theme-save"}>
+                  {pending === "birthday-theme-save" ? "Saving..." : "Save birthday theme"}
+                </button>
+              </div>
+            </form>
+          ) : null}
+        </PlannerSummaryPanel>
+      ) : null}
+
       {recommendationHints.length ? (
         <section className="card">
           <div className="section-head">
@@ -321,109 +359,6 @@ export function OccasionPlanner({
         </section>
       ) : null}
 
-      {config.plannerVariant === "christmas" ? (
-        <section className="card christmas-summary">
-          <div className="section-head">
-            <div>
-              <span className="eyebrow">Holiday rhythm</span>
-              <h3>Balance the little wins with the headliners</h3>
-            </div>
-            <p className="muted">
-              Let the stocking feel layered and playful. Keep the main gifts fewer, clearer, and worth waking up for.
-            </p>
-          </div>
-          <div className="card-grid christmas-summary__grid">
-            <article className="card card--nested christmas-summary__card">
-              <span className="eyebrow">{stockingSection?.summaryLabel ?? "Stuffers"}</span>
-              <h4>{stockingSection?.items.length ?? 0}</h4>
-              <p className="muted">Easy little wins that make the stocking feel full.</p>
-            </article>
-            <article className="card card--nested christmas-summary__card">
-              <span className="eyebrow">{mainSection?.summaryLabel ?? "Main gifts"}</span>
-              <h4>{mainSection?.items.length ?? 0}</h4>
-              <p className="muted">Bigger gifts worth protecting space and budget for.</p>
-            </article>
-            <article className="card card--nested christmas-summary__card">
-              <span className="eyebrow">Plan mix</span>
-              <h4>{totalItemCount}</h4>
-              <p className="muted">
-                {totalLinkedCount} linked gifts and {totalDraftCount} draft {totalDraftCount === 1 ? "idea" : "ideas"}.
-              </p>
-            </article>
-          </div>
-        </section>
-      ) : null}
-
-      {config.plannerVariant === "birthday" ? (
-        <section className="card birthday-theme">
-          <div className="section-head">
-            <div>
-              <span className="eyebrow">Birthday framing</span>
-              <h3>Give this year a vibe before you fill the page</h3>
-            </div>
-            <p className="muted">
-              A short theme keeps the birthday from turning into a random list. One clear headline gift should lead, then the supporting layer can echo it.
-            </p>
-          </div>
-          <form
-            className="stack"
-            onSubmit={(event) => {
-              event.preventDefault();
-              const formData = new FormData(event.currentTarget);
-              runRequest("birthday-theme-save", () =>
-                fetch(`/api/occasions/${typeSlug}?year=${year}`, {
-                  method: "PATCH",
-                  body: formData,
-                }),
-              );
-            }}
-          >
-            <div className="detail-grid">
-              <label className="grid__full">
-                Birthday theme
-                <input
-                  name="themeName"
-                  defaultValue={plan.themeName ?? ""}
-                  placeholder="Cozy self-care, weekend away, little luxuries, garden romance..."
-                />
-              </label>
-            </div>
-            <div className="button-row button-row--tight">
-              <button type="submit" disabled={pending === "birthday-theme-save"}>
-                {pending === "birthday-theme-save" ? "Saving..." : "Save birthday theme"}
-              </button>
-            </div>
-          </form>
-          <div className="card-grid birthday-summary__grid">
-            <article className="card card--nested birthday-summary__card">
-              <span className="eyebrow">Headline lane</span>
-              <h4>{headlineSection?.items.length ?? 0}</h4>
-              <p className="muted">
-                {headlineSection?.items.length === 1
-                  ? "Good. One clear main gift is exactly the right shape."
-                  : headlineSection?.items.length
-                    ? "This lane should usually resolve to one clear main gift."
-                    : "Empty is fine for now, but this lane should eventually hold the birthday anchor."}
-              </p>
-            </article>
-            <article className="card card--nested birthday-summary__card">
-              <span className="eyebrow">Supporting ideas</span>
-              <h4>{supportingSection?.items.length ?? 0}</h4>
-              <p className="muted">Cards, extras, small surprises, or add-ons that reinforce the main idea.</p>
-            </article>
-            <article className="card card--nested birthday-summary__card">
-              <span className="eyebrow">This year&apos;s vibe</span>
-              <h4>{plan.themeName ?? "Open"}</h4>
-              <p className="muted">
-                {plan.themeName
-                  ? "Use the theme to decide whether a new idea belongs in the headline lane or just supports it."
-                  : "Save a short theme once the mood of the birthday becomes clear."}
-              </p>
-            </article>
-          </div>
-        </section>
-      ) : null}
-
       {error ? <p className="form__error">{error}</p> : null}
 
       {sections.map((section) => (
@@ -434,6 +369,8 @@ export function OccasionPlanner({
               ? " planner-section planner-section--christmas"
               : config.plannerVariant === "birthday"
                 ? " planner-section planner-section--birthday"
+                : config.plannerVariant === "valentines"
+                  ? " planner-section planner-section--valentines"
                 : ""
           }`}
         >
@@ -664,7 +601,9 @@ export function OccasionPlanner({
           )}
 
           <div className="planner-add-grid">
-            {config.plannerVariant === "christmas" || config.plannerVariant === "birthday" ? (
+            {config.plannerVariant === "christmas" ||
+            config.plannerVariant === "birthday" ||
+            config.plannerVariant === "valentines" ? (
               <>
                 {renderDraftForm(section)}
                 {renderLinkForm(section)}

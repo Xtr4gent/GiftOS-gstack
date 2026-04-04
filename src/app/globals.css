@@ -525,8 +525,14 @@ label {
     linear-gradient(180deg, rgba(41, 28, 47, 0.98) 0%, rgba(30, 21, 37, 0.97) 100%);
 }
 
+.planner-section--valentines {
+  background:
+    linear-gradient(180deg, rgba(52, 29, 44, 0.98) 0%, rgba(34, 21, 32, 0.97) 100%);
+}
+
 .planner-section--christmas::before,
-.planner-section--birthday::before {
+.planner-section--birthday::before,
+.planner-section--valentines::before {
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
@@ -539,6 +545,10 @@ label {
 
 .planner-section--birthday::before {
   background: linear-gradient(180deg, rgba(255, 158, 209, 0.94) 0%, rgba(240, 93, 168, 0.88) 100%);
+}
+
+.planner-section--valentines::before {
+  background: linear-gradient(180deg, rgba(255, 199, 223, 0.96) 0%, rgba(240, 93, 168, 0.9) 100%);
 }
 
 .planner-section__header,
@@ -624,6 +634,12 @@ label {
   border-color: rgba(242, 192, 120, 0.18);
 }
 
+.planner-section--valentines .planner-add-card--primary {
+  background:
+    linear-gradient(180deg, rgba(255, 199, 223, 0.11) 0%, rgba(240, 93, 168, 0.06) 100%);
+  border-color: rgba(255, 158, 209, 0.22);
+}
+
 .planner-section--christmas .planner-add-card--primary::after {
   content: "Start here";
   position: absolute;
@@ -633,6 +649,21 @@ label {
   border-radius: 999px;
   background: rgba(242, 192, 120, 0.14);
   color: var(--gold);
+  font-family: var(--font-utility), sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.planner-section--valentines .planner-add-card--primary::after {
+  content: "Lead with this";
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.24rem 0.62rem;
+  border-radius: 999px;
+  background: rgba(255, 199, 223, 0.14);
+  color: var(--highlight);
   font-family: var(--font-utility), sans-serif;
   font-size: 0.72rem;
   letter-spacing: 0.08em;
@@ -674,27 +705,41 @@ label {
   margin: 0.35rem 0 0.55rem;
 }
 
-.christmas-summary {
+.planner-summary {
+  background:
+    linear-gradient(140deg, rgba(42, 31, 47, 0.98) 0%, rgba(28, 22, 34, 0.97) 100%);
+}
+
+.planner-summary--christmas {
   background:
     radial-gradient(circle at top right, rgba(242, 192, 120, 0.11), transparent 26%),
     linear-gradient(140deg, rgba(42, 31, 47, 0.98) 0%, rgba(28, 22, 34, 0.97) 100%);
   border-color: rgba(242, 192, 120, 0.2);
 }
 
-.birthday-theme {
+.planner-summary--birthday {
   background:
     radial-gradient(circle at top right, rgba(255, 158, 209, 0.12), transparent 24%),
     linear-gradient(140deg, rgba(44, 29, 50, 0.98) 0%, rgba(30, 22, 37, 0.97) 100%);
   border-color: rgba(255, 158, 209, 0.16);
 }
 
-.christmas-summary__grid,
-.birthday-summary__grid {
+.planner-summary--valentines {
+  background:
+    radial-gradient(circle at top right, rgba(255, 199, 223, 0.14), transparent 24%),
+    linear-gradient(145deg, rgba(52, 30, 44, 0.98) 0%, rgba(35, 21, 31, 0.97) 100%);
+  border-color: rgba(255, 158, 209, 0.2);
+}
+
+.planner-summary__grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.christmas-summary__card h4,
-.birthday-summary__card h4 {
+.planner-summary--valentines .planner-summary__grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.planner-summary__card h4 {
   font-size: 2rem;
   margin: 0.35rem 0 0.45rem;
 }

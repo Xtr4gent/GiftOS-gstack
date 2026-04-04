@@ -101,4 +101,22 @@ describe("occasion config", () => {
       quickAddSubmitLabel: "Add supporting idea",
     });
   });
+
+  it("builds valentine lanes with a lighter extras flow", () => {
+    const resolved = resolveOccasionConfig("VALENTINES", 2026, null);
+
+    expect(resolved.config.plannerVariant).toBe("valentines");
+    expect(resolved.config.sections.map((section) => section.key)).toEqual(["gesture", "extras"]);
+    expect(resolved.config.sections[0]).toMatchObject({
+      key: "gesture",
+      quickAddMode: "full",
+      summaryLabel: "Main gesture",
+    });
+    expect(resolved.config.sections[1]).toMatchObject({
+      key: "extras",
+      quickAddMode: "simple",
+      summaryLabel: "Sweet extras",
+      quickAddSubmitLabel: "Add sweet extra",
+    });
+  });
 });
