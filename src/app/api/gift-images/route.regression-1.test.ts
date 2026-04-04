@@ -38,14 +38,16 @@ vi.mock("@/lib/bucket", () => ({
 import { GET } from "@/app/api/gift-images/[id]/route";
 
 describe("gift image route", () => {
-  it("returns 404 when the stored image object is missing", async () => {
+  it("returns a placeholder image when the stored image object is missing", async () => {
     // Regression: ISSUE-002 - missing image files were surfacing as 502s in production.
     // Found by /qa on 2026-03-30
     // Report: .gstack/qa-reports/qa-report-giftos-gstack-production-up-railway-app-2026-03-30.md
+    // Follow-up: on 2026-04-04, the UI still emitted 404 console noise on normal page load.
     const response = await GET(new Request("http://localhost/api/gift-images/image-1"), {
       params: Promise.resolve({ id: "image-1" }),
     });
 
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Content-Type")).toBe("image/svg+xml");
   });
 });
