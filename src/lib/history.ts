@@ -221,7 +221,7 @@ export function buildHistoryAnalytics(rows: HistoryRow[]): HistoryAnalytics {
   };
 }
 
-async function loadHistoryRows(userId: string): Promise<HistoryRow[]> {
+export async function loadHistoryRows(userId: string): Promise<HistoryRow[]> {
   const rows = await db
     .select({
       id: gifts.id,

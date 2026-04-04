@@ -705,6 +705,62 @@ label {
   margin: 0.35rem 0 0.55rem;
 }
 
+.dashboard-hero {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+  align-items: stretch;
+}
+
+.dashboard-hero__metrics,
+.dashboard-pattern-summary,
+.dashboard-coverage-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.dashboard-top-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.dashboard-planning,
+.dashboard-insights-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.dashboard-insights-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.dashboard-chart {
+  width: 100%;
+  min-height: 220px;
+}
+
+.dashboard-pattern-summary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.dashboard-pattern-card,
+.dashboard-coverage-card {
+  padding: 0.95rem 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 214, 232, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.dashboard-pattern-card {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.dashboard-pattern-card strong,
+.dashboard-coverage-card h4 {
+  font-family: var(--font-display), serif;
+  font-weight: 400;
+}
+
 .history-summary-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -899,7 +955,11 @@ label {
   .christmas-summary__grid,
   .birthday-summary__grid,
   .history-summary-grid,
-  .analytics-layout {
+  .analytics-layout,
+  .dashboard-top-grid,
+  .dashboard-insights-grid,
+  .dashboard-pattern-summary,
+  .dashboard-hero {
     grid-template-columns: 1fr;
   }
 

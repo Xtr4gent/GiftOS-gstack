@@ -14,14 +14,58 @@ vi.mock("@/db/client", () => ({
       },
       gifts: {
         findFirst: findFirstGift,
+        findMany: vi.fn().mockResolvedValue([]),
       },
     },
-    select: vi.fn(() => ({
-      from: vi.fn(() => ({
-        where: vi.fn().mockResolvedValue([{ total: 0 }]),
+    select: vi
+      .fn()
+      .mockImplementationOnce(() => ({
+        from: vi.fn(() => ({
+          where: vi.fn().mockResolvedValue([{ total: 0 }]),
+        })),
+      }))
+      .mockImplementationOnce(() => ({
+        from: vi.fn(() => ({
+          where: vi.fn(() => ({
+            orderBy: vi.fn().mockResolvedValue([]),
+          })),
+        })),
+      }))
+      .mockImplementation(() => ({
+        from: vi.fn(() => ({
+          where: vi.fn().mockResolvedValue([]),
+        })),
       })),
-    })),
   },
+}));
+
+vi.mock("@/lib/history", () => ({
+  loadHistoryRows: vi.fn().mockResolvedValue([]),
+  buildHistoryAnalytics: vi.fn().mockReturnValue({
+    summary: {
+      totalLifetimeSpend: 0,
+      totalGiftCount: 0,
+      averageGiftSpend: null,
+      activeYears: 0,
+      currentYearSpend: 0,
+      previousYearSpend: 0,
+      yearOverYearDelta: null,
+    },
+    yearlySpend: [],
+    occasionBreakdown: [],
+    monthlySpend: [],
+    cadence: {
+      averageDaysBetween: null,
+      shortestGapDays: null,
+      longestGapDays: null,
+      mostRecentGapDays: null,
+    },
+    tagPatterns: [],
+  }),
+}));
+
+vi.mock("@/lib/recommendations", () => ({
+  getDashboardRecommendationHints: vi.fn().mockResolvedValue([]),
 }));
 
 import { getDashboardData } from "@/lib/dashboard";
