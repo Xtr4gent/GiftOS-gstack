@@ -45,7 +45,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     return new NextResponse(missingImagePlaceholder(), {
       headers: {
         "Content-Type": "image/svg+xml",
-        "Cache-Control": "private, max-age=60",
+        "Cache-Control": "private, max-age=300, stale-while-revalidate=86400",
       },
     });
   }
@@ -53,7 +53,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   return new NextResponse(asset.stream as BodyInit, {
     headers: {
       "Content-Type": image.mimeType,
-      "Cache-Control": "private, max-age=60",
+      "Cache-Control": "private, max-age=604800, immutable",
     },
   });
 }

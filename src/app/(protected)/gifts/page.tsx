@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { requireUserSession } from "@/lib/auth";
@@ -17,7 +18,7 @@ export default async function GiftsPage() {
           <span className="eyebrow">Gift ideas</span>
           <h2>Everything in one place</h2>
         </div>
-        <Link href="/gifts/new" className="button-link">
+        <Link href="/gifts/new" prefetch={false} className="button-link">
           Add gift
         </Link>
       </div>
@@ -28,9 +29,22 @@ export default async function GiftsPage() {
             {gifts.map((gift) => (
               <li key={gift.id} className="gift-row">
                 <div className="gift-row__main">
-                  {gift.imageId ? <img src={`/api/gift-images/${gift.imageId}`} alt="" className="thumb" /> : <div className="thumb thumb--empty" />}
+                  {gift.imageId ? (
+                    <Image
+                      src={`/api/gift-images/${gift.imageId}`}
+                      alt=""
+                      className="thumb"
+                      width={64}
+                      height={64}
+                      sizes="64px"
+                      loading="lazy"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="thumb thumb--empty" />
+                  )}
                   <div>
-                    <Link href={`/gifts/${gift.id}`} className="gift-row__title">
+                    <Link href={`/gifts/${gift.id}`} prefetch={false} className="gift-row__title">
                       {gift.name}
                     </Link>
                     <p className="muted">{gift.status}</p>

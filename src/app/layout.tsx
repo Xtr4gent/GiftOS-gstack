@@ -6,17 +6,21 @@ const displayFont = Instrument_Serif({
   subsets: ["latin"],
   variable: "--font-display",
   weight: ["400"],
+  display: "swap",
 });
 
 const bodyFont = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-body",
+  display: "swap",
 });
 
 const utilityFont = IBM_Plex_Sans({
   subsets: ["latin"],
   variable: "--font-utility",
-  weight: ["400", "500", "600"],
+  weight: ["500", "600"],
+  display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {

@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { requireUserSession } from "@/lib/auth";
 import { getGiftHistory } from "@/lib/history";
 import { formatMinorUnits } from "@/lib/money";
@@ -24,7 +26,20 @@ export default async function HistoryPage() {
               {group.items.map((gift) => (
                 <li key={gift.id} className="gift-row">
                   <div className="gift-row__main">
-                    {gift.imageId ? <img src={`/api/gift-images/${gift.imageId}`} alt="" className="thumb" /> : <div className="thumb thumb--empty" />}
+                    {gift.imageId ? (
+                      <Image
+                        src={`/api/gift-images/${gift.imageId}`}
+                        alt=""
+                        className="thumb"
+                        width={64}
+                        height={64}
+                        sizes="64px"
+                        loading="lazy"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="thumb thumb--empty" />
+                    )}
                     <div>
                       <strong>{gift.name}</strong>
                       <p className="muted">{gift.occasionType || "No occasion"}</p>

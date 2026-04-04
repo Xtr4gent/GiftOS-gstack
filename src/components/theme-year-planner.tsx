@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -127,6 +128,7 @@ export function ThemeYearPlanner({
                 <Link
                   key={candidateYear}
                   href={`/theme?year=${candidateYear}`}
+                  prefetch={false}
                   className={`year-chip${candidateYear === year ? " year-chip--active" : ""}`}
                 >
                   {candidateYear}
@@ -219,12 +221,21 @@ export function ThemeYearPlanner({
                         <input type="hidden" name="draftTargetAmount" value="" />
                         <div className="gift-row__main">
                           {item.gift.imageId ? (
-                            <img src={`/api/gift-images/${item.gift.imageId}`} alt="" className="thumb" />
+                            <Image
+                              src={`/api/gift-images/${item.gift.imageId}`}
+                              alt=""
+                              className="thumb"
+                              width={64}
+                              height={64}
+                              sizes="64px"
+                              loading="lazy"
+                              unoptimized
+                            />
                           ) : (
                             <div className="thumb thumb--empty" />
                           )}
                           <div>
-                            <Link href={`/gifts/${item.gift.id}`} className="gift-row__title">
+                            <Link href={`/gifts/${item.gift.id}`} prefetch={false} className="gift-row__title">
                               {item.gift.name}
                             </Link>
                             <p className="muted">{item.gift.status}</p>

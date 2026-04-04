@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -23,12 +24,23 @@ export default async function GiftDetailPage({ params }: { params: Promise<{ id:
           <span className="eyebrow">Gift detail</span>
           <h2>{gift.name}</h2>
         </div>
-        <Link href={`/gifts/${gift.id}/edit`} className="button-link">
+        <Link href={`/gifts/${gift.id}/edit`} prefetch={false} className="button-link">
           Edit gift
         </Link>
       </div>
       <section className="card stack">
-        {gift.image ? <img src={`/api/gift-images/${gift.image.id}`} alt={gift.name} className="detail-image" /> : null}
+        {gift.image ? (
+          <Image
+            src={`/api/gift-images/${gift.image.id}`}
+            alt={gift.name}
+            className="detail-image"
+            width={420}
+            height={420}
+            sizes="(max-width: 900px) 100vw, 420px"
+            priority
+            unoptimized
+          />
+        ) : null}
         <div className="detail-grid">
           <div>
             <span className="eyebrow">Status</span>

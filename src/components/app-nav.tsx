@@ -21,7 +21,7 @@ export function AppNav() {
       </div>
       <div className="sidebar__links">
         {links.map((link) => (
-          <Link key={link.href} href={link.href} className="sidebar__link">
+          <Link key={link.href} href={link.href} prefetch={false} className="sidebar__link">
             {link.label}
           </Link>
         ))}
